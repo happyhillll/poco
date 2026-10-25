@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><link rel="icon" href="assets/favicon-32.png">
+<meta name="ext-resource-dependency" content="assets/poco-paper.png" data-resource-id="r_poco_2dpaper" />
+<meta name="ext-resource-dependency" content="assets/poco-logo-ink.svg" data-resource-id="r_poco_2dlogo_2dink" />
+<meta name="ext-resource-dependency" content="assets/poco-logo-reverse.svg" data-resource-id="r_poco_2dlogo_2dreverse" />
+<meta name="ext-resource-dependency" content="assets/today-snowfield.png" data-resource-id="r_today_2dsnowfield" />
+<meta name="ext-resource-dependency" content="assets/poet-이수동.png" data-resource-id="r_poet_2d_c774_c218_b3d9" />
+<meta name="ext-resource-dependency" content="assets/poet-기형도.png" data-resource-id="r_poet_2d_ae30_d615_b3c4" />
+<meta name="ext-resource-dependency" content="assets/poet-백석.png" data-resource-id="r_poet_2d_bc31_c11d" />
+<meta name="ext-resource-dependency" content="assets/poet-윤동주.png" data-resource-id="r_poet_2d_c724_b3d9_c8fc" />
+<meta name="ext-resource-dependency" content="assets/poet-이육사.png" data-resource-id="r_poet_2d_c774_c721_c0ac" />
+<meta name="ext-resource-dependency" content="assets/poet-한강.png" data-resource-id="r_poet_2d_d55c_ac15" />
+<meta name="ext-resource-dependency" content="assets/poet-정호승.png" data-resource-id="r_poet_2d_c815_d638_c2b9" />
+<meta name="ext-resource-dependency" content="assets/poet-나태주.png" data-resource-id="r_poet_2d_b098_d0dc_c8fc" />
+<meta name="ext-resource-dependency" content="assets/poet-이정록.png" data-resource-id="r_poet_2d_c774_c815_b85d" />
+<meta name="ext-resource-dependency" content="assets/poet-유응교.png" data-resource-id="r_poet_2d_c720_c751_ad50" />
+<meta name="ext-resource-dependency" content="assets/poet-김승희.png" data-resource-id="r_poet_2d_ae40_c2b9_d76c" />
+<meta name="ext-resource-dependency" content="assets/login-apple.png" data-resource-id="r_login_2dapple" />
+<meta name="ext-resource-dependency" content="assets/login-email.png" data-resource-id="r_login_2demail" />
+<meta name="ext-resource-dependency" content="assets/login-google.png" data-resource-id="r_login_2dgoogle" />
+<meta name="ext-resource-dependency" content="assets/login-kakao.png" data-resource-id="r_login_2dkakao" />
+<meta name="ext-resource-dependency" content="assets/login-line.png" data-resource-id="r_login_2dline" />
+<meta name="ext-resource-dependency" content="assets/login-x.png" data-resource-id="r_login_2dx" />
+<meta name="ext-resource-dependency" content="assets/login-apple.png" data-resource-id="r_login_apple" />
+<meta name="ext-resource-dependency" content="assets/login-email.png" data-resource-id="r_login_email" />
+<meta name="ext-resource-dependency" content="assets/login-google.png" data-resource-id="r_login_google" />
+<meta name="ext-resource-dependency" content="assets/login-kakao.png" data-resource-id="r_login_kakao" />
+<meta name="ext-resource-dependency" content="assets/login-line.png" data-resource-id="r_login_line" />
+<meta name="ext-resource-dependency" content="assets/login-x.png" data-resource-id="r_login_x" />
+<script>/* local-run shim: Claude Design builds window.__resources from these meta tags; rebuild it here */window.__resources={};document.querySelectorAll('meta[name="ext-resource-dependency"]').forEach(function(m){window.__resources[m.getAttribute("data-resource-id")]=m.getAttribute("content");});</script>
+<title>Poco · 시연 프로토타입</title>
+<link href="vendor/fonts/fonts.css" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#E4E1D6;overflow:hidden}a{color:#2B2B2B}a:hover{color:#5E5E5E}#stage{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0}</style>
+<script src="vendor/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="vendor/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="vendor/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head><body><div id="stage"></div>
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel" src="poco-data.jsx"></script>
+<script type="text/babel" src="poco-ui.jsx"></script>
+<script>window.NOTES_A={};</script>
+<script type="text/babel">window.H1 = ({children,style}) => <div style={{font:`700 16px ${T.sans}`,color:T.ink,whiteSpace:"nowrap",...style}}>{children}</div>;</script>
+<script type="text/babel" src="matrix.jsx"></script>
+<script type="text/babel" src="onboarding.jsx"></script>
+<script type="text/babel" src="poco-onb.jsx"></script>
+<script type="text/babel" src="poco-read.jsx"></script>
+<script type="text/babel" src="poco-home.jsx"></script>
+<script type="text/babel" src="poco-explore.jsx"></script>
+<script type="text/babel" src="poco-poem.jsx"></script>
+<script type="text/babel" src="poco-room.jsx"></script>
+<script type="text/babel" src="poco-me.jsx"></script>
+<script type="text/babel" src="poco-login.jsx"></script>
+<script type="text/babel" src="poco-screens.jsx"></script>
+<script type="text/babel">
+const st = document.getElementById('stage');
+// Scale so the whole 1440×900 design fits, then stretch the frame over the leftover space (no empty bands).
+const fit = () => { const s = Math.min(innerWidth/1440, innerHeight/900), w = innerWidth/s, h = innerHeight/s;
+  st.style.width = w+'px'; st.style.height = h+'px'; st.style.setProperty('--pw', w+'px'); st.style.setProperty('--ph', h+'px');
+  st.style.transform = `scale(${s})`; };
+fit(); addEventListener('resize', fit);
+const start = location.hash.slice(1); // 예: #home 으로 열면 온보딩을 건너뜀
+ReactDOM.createRoot(st).render(<PocoApp init={start?{scr:start}:undefined}/>);
+</script></body></html>

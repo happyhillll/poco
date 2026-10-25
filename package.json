@@ -1,0 +1,25 @@
+{
+  "name": "poco-canvas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Poco 화면 캔버스 (Claude Design 내보내기) 로컬 실행용",
+  "scripts": {
+    "postinstall": "node scripts/vendor.mjs",
+    "dev": "node scripts/vendor.mjs && serve public --listen 5175 --no-clipboard",
+    "build": "node scripts/vendor.mjs && node scripts/build.mjs",
+    "preview": "serve docs --listen 4175 --no-clipboard"
+  },
+  "dependencies": {
+    "@babel/standalone": "7.29.0",
+    "@fontsource/noto-sans-kr": "^5.2.0",
+    "@fontsource/noto-serif-kr": "^5.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  },
+  "overrides": {
+    "compression": "^1.8.2"
+  }
+}
