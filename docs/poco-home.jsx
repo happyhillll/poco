@@ -151,13 +151,16 @@ const phCss = `.pk-card{transition:border-color .1s}.pk-card:hover{border-color:
 
 // 서재: 책등. 모든 책등은 같은 크기, 행 색은 행 수만큼 높이를 고르게 나눠 위→아래로 채움. 위쪽 라벨에 세로 제목
 function PhSpine({a, k, go, w=52, h=250}){
-  const W=WORKS[k], cs=a.tags[k], isNew=a.fresh===k, lw=Math.round(w*.5), fs=Math.max(11,Math.round(w*.24));
+  const W=WORKS[k], cs=a.tags[k], isNew=a.fresh===k, lw=Math.round(w*.5), fs0=Math.max(11,Math.round(w*.24));
+  // 긴 제목은 책등 라벨 안에 다 들어가도록 글자를 줄임(제목·시인 모두 보이게)
+  const tl=[...W.title.replace(/ /g,'')].length, pl=[...W.poet].length, maxH=Math.round(h*.7)-18; const need=tl*fs0*1.14+8+pl*Math.max(9,fs0-4)*1.1;
+  const fs=need>maxH?Math.max(8,Math.floor(fs0*maxH/need)):fs0;
   return <div className="pk-hit ph-spine" onClick={()=>go('poem',{pk:k})} title={`${W.title} · ${W.poet}`} style={{position:'relative',width:w,height:h,flex:'none',borderRadius:'3px 3px 2px 2px',overflow:'hidden',
     boxShadow:'0 1px 0 rgba(0,0,0,.25), 2px 0 3px rgba(0,0,0,.12)',animation:isNew?'phNew 1.2s ease-out .4s 2':'none'}}>
     <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column'}}>{cs.map((c,i)=><div key={i} style={{flex:1,background:c&&PC[c]&&PC[c][1]?PC[c][1]:'#ECE9E1'}}></div>)}</div>
     <div style={{position:'absolute',left:(w-lw)/2,top:Math.round(h*.08),width:lw,maxHeight:Math.round(h*.7),background:'#FBFAF6',borderRadius:1,boxShadow:'0 0 0 1px rgba(0,0,0,.06)',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0 8px',boxSizing:'border-box',overflow:'hidden'}}>
       <div style={{writingMode:'vertical-rl',font:`500 ${fs}px/1 ${T.serif}`,letterSpacing:'.12em',color:T.ink,whiteSpace:'nowrap'}}>{W.title.replace(/ /g,'')}</div>
-      <div style={{writingMode:'vertical-rl',font:`400 ${Math.max(9,fs-4)}px/1 ${T.sans}`,letterSpacing:'.08em',color:T.ink2,marginTop:8,whiteSpace:'nowrap'}}>{W.poet}</div></div>
+      <div style={{writingMode:'vertical-rl',font:`400 ${fs<fs0?Math.max(7,fs-3):Math.max(9,fs-4)}px/1 ${T.sans}`,letterSpacing:'.08em',color:T.ink2,marginTop:8,whiteSpace:'nowrap'}}>{W.poet}</div></div>
     <div style={{position:'absolute',left:0,right:0,top:Math.round(h*.045),height:1,background:'rgba(255,255,255,.55)'}}></div>
     <div style={{position:'absolute',left:0,right:0,bottom:Math.round(h*.045),height:1,background:'rgba(255,255,255,.55)'}}></div>
     <div style={{position:'absolute',inset:0,pointerEvents:'none',background:'linear-gradient(90deg, rgba(0,0,0,.22) 0%, rgba(255,255,255,.14) 22%, rgba(255,255,255,0) 45%, rgba(0,0,0,.06) 78%, rgba(0,0,0,.24) 100%)'}}></div>

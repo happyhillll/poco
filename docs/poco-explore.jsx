@@ -232,7 +232,7 @@ function PhFind({a, up, go}){
       {c && <div style={{marginTop:24,paddingTop:18,borderTop:`1px solid ${T.line}`,animation:'pkIn .12s both'}}>
         <div style={{display:'flex',alignItems:'center',gap:12}}><Sq c={c} w={40} r={4}/>
           <div><div style={{font:`700 18px ${T.sans}`,color:T.ink}}>{pcLabel(c)}</div>
-            <div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:2}}>모든 독자 {allN}번 · 나 {mineN}번</div></div></div>
+            <div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:2}}>다른 독자 {allN}번 · 나 {mineN}번</div></div></div>
         {topPoems.length>0 && <>{lbl('이 색이 많이 나온 시')}
           {topPoems.map(([k,n])=><div key={k} className="pk-hit" onClick={()=>go('poem',{pk:k})} style={{display:'flex',alignItems:'center',gap:10,height:30}}>
             <div style={{width:120,font:`400 13px ${T.serif}`,color:T.ink,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{WORKS[k].title}</div>
@@ -354,7 +354,7 @@ function PhText({a, up, go}){
         {hits.length>0 && <div style={{padding:'18px 0 6px'}}>
           <div style={{font:`500 12px ${T.sans}`,color:T.caption,marginBottom:10}}>제목·시인이 맞는 시 {hits.length}편</div>
           <div style={{display:'flex',gap:16,overflowX:'auto',paddingBottom:6}}>{hits.map(k=><div key={k} className="pk-hit" onClick={()=>go('poem',{pk:k})} style={{flex:'none',display:'flex',alignItems:'center',gap:12,height:56,padding:'0 16px 0 12px',background:T.surface,border:`1px solid ${T.line}`,borderRadius:8}}>
-            <Sq c={(a.rep||{})[k]||WORKS[k].rep[0]} w={28} r={4}/><div><div style={{font:`500 15px ${T.serif}`,color:T.ink,whiteSpace:'nowrap'}}>{WORKS[k].title}</div><div style={{font:`400 12px ${T.sans}`,color:T.caption}}>{WORKS[k].poet}{a.tags[k]?'':' · 읽기 전'}</div></div></div>)}</div></div>}
+            <Sq c={(a.rep||{})[k]||WORKS[k].rep[0]} w={28} r={4}/><div><div style={{font:`500 15px ${T.serif}`,color:T.ink,whiteSpace:'nowrap'}}>{WORKS[k].title}</div><div style={{font:`400 12px ${T.sans}`,color:T.caption}}>{WORKS[k].poet}{a.tags[k]?'':progOf(a,k)>0?' · 읽는 중':' · 읽기 전'}</div></div></div>)}</div></div>}
         {q && res.length===0 && hits.length===0 && <div style={{padding:'24px 0'}}>
           <div style={{font:`400 15px ${T.sans}`,color:T.ink}}>「{q}」{(()=>{ const c=q.charCodeAt(q.length-1)-0xAC00; return (c>=0&&c<11172&&c%28)?'이':'가'; })()} 들어간 행이 없어요.</div>
           <div style={{font:`400 14px ${T.sans}`,color:T.ink2,marginTop:8}}>{scope==='mine'?'‘모든 시’로 범위를 넓히거나, ':''}더 짧은 말로 찾아보세요.</div></div>}
@@ -363,10 +363,10 @@ function PhText({a, up, go}){
             <span style={{font:`700 15px ${T.serif}`,color:T.ink,whiteSpace:'nowrap'}}>{WORKS[g.k].title}</span>
             <span style={{font:`400 12px ${T.sans}`,color:T.ink2}}>{[WORKS[g.k].poet,WORKS[g.k].year].filter(Boolean).join(' · ')}</span>
             <span style={{flex:1}}></span>
-            <span style={{font:`400 12px ${T.sans}`,color:T.caption}}><b style={{color:T.ink,fontWeight:700}}>{g.rows.length}행</b> / {WORKS[g.k].lines.length}행{a.tags[g.k]?'':' · 읽기 전'}</span>
+            <span style={{font:`400 12px ${T.sans}`,color:T.caption}}><b style={{color:T.ink,fontWeight:700}}>{g.rows.length}행</b> / {WORKS[g.k].lines.length}행{a.tags[g.k]?'':progOf(a,g.k)>0?' · 읽는 중':' · 읽기 전'}</span>
           </div>}
           <div style={{minWidth:0}}>{g.rows.map((r,ri)=><div key={r.k+r.i} className="pk-hit pk-row" onClick={()=>openRow(r)} style={{display:'flex',alignItems:'center',gap:18,minHeight:68,padding:'10px 12px',borderBottom:`1px solid ${T.line}`,animation:'pkIn .12s both'}}>
-            {a.tags[r.k] ? <Sq c={a.tags[r.k][r.i]} w={40} r={4} title={`내 색 · ${pcLabel(a.tags[r.k][r.i])}`}/> : <div title="아직 읽지 않은 시" style={{width:40,height:40,boxSizing:'border-box',border:`1.5px dashed ${T.disabled}`,borderRadius:4,flex:'none'}}></div>}
+            {(()=>{ const mc=a.tags[r.k]?a.tags[r.k][r.i]:(a.prog[r.k]||[])[r.i]; return mc!==undefined; })() ? (()=>{ const mc=a.tags[r.k]?a.tags[r.k][r.i]:(a.prog[r.k]||[])[r.i]; return <Sq c={mc} w={40} r={4} title={`내 색 · ${pcLabel(mc)}`}/>; })() : <div title="아직 읽지 않은 시" style={{width:40,height:40,boxSizing:'border-box',border:`1.5px dashed ${T.disabled}`,borderRadius:4,flex:'none'}}></div>}
             <div style={{flex:1,minWidth:0}}><div style={{font:`400 18px/1.5 ${T.serif}`,color:T.ink,letterSpacing:'.02em'}}>{mark(r.t)}</div>
               <div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:2}}>「{WORKS[r.k].title}」 {WORKS[r.k].poet}</div></div>
             {a.tags[r.k] ? <PhStack cs={lineColors(a,r.k,r.i)} names={lineNamesOf(r.k)} w={140} h={12}/> : <span style={{width:140}}></span>}

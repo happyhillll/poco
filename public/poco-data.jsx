@@ -60,6 +60,11 @@ const REACTS0 = {
     13:[{id:11,n:'모과',c:'WH',t:'다 비워진 느낌이라 오히려 흰색이었어요.'},{id:12,n:'종이배',c:'BK',t:'마지막 행은 불이 꺼진 것 같았어요.'}]},
 };
 const REACT_MAX = 60;
+// 내 '이유'(행 말풍선·다시 읽기)와 행 반응 목록을 한 번에 갱신: 같은 글이 시 상세 '반응'과 프로필 '내가 남긴 반응'에도 보이게
+const withMyWhy = (s,k,i,v) => { const key=k+'|'+i+'|me'; const W={...(s.why||{})}; if(v) W[key]={...(W[key]||{}),t:v}; else delete W[key];
+  const R={...(s.reacts||{})}; const row={...(R[k]||{})}; const L=(row[i]||[]).filter(x=>x.n!==ME);
+  if(v){ const c=((s.tags||{})[k]||((s.prog||{})[k])||[])[i]; L.push({id:'me-'+k+'-'+i,n:ME,c,t:v}); }
+  if(L.length) row[i]=L; else delete row[i]; R[k]=row; return {why:W,reacts:R}; };
 
 // UX 법칙 키워드 (CLAUDE.md 표기 그대로)
 const PL = {gs:'게슈탈트 · 유사성·근접성·연속성',sc:'스캐닝 (Nielsen, 1997)',co:'컬러 이론',dh:'도허티 임계',ja:'제이콥의 법칙 · 멘탈 모델',fi:'피츠의 법칙',mi:'밀러의 법칙',po:'포스텔의 법칙',pe:'피크엔드 법칙',vr:'폰 레스토프 효과',sa:'선택적 주의',ae:'심미적 사용성',hi:'힉의 법칙 · 온보딩'};
@@ -70,4 +75,4 @@ const PILOT_R = ['남형석','김한결','김려원','조은','김민지'];
 MY.cpd.tags=WORKS.cpd.pilotMe.slice(); MY.cpd.first=WORKS.cpd.pilotMe.slice(); MY.jil.tags=WORKS.jil.pilotMe.slice();
 (()=>{ const m={'모과':'남형석','종이배':'김한결','새벽세시':'김려원','여름비':'조은','느린산책':'김민지'}; ['cpd','jil'].forEach(k=>Object.values(REACTS0[k]).forEach(L=>L.forEach(r=>{ if(m[r.n]) r.n=m[r.n]; }))); })();
 const namesOf = w => w.names || NICK;
-Object.assign(window,{PILOT_R,namesOf,PC,PC_TOP,PC_GRID,PC_ORDER,pcName,pcLabel,NICK,ME,TODAY,WORKS,WORK_KEYS,MY,REACTS0,REACT_MAX,PL});
+Object.assign(window,{withMyWhy,PILOT_R,namesOf,PC,PC_TOP,PC_GRID,PC_ORDER,pcName,pcLabel,NICK,ME,TODAY,WORKS,WORK_KEYS,MY,REACTS0,REACT_MAX,PL});

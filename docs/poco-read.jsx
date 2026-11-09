@@ -6,14 +6,14 @@ function useTagging(n, init, kind){
   const [hist,setHist] = React.useState([]);
   const [stack,setStack] = React.useState([]);
   const [flash,setFlash] = React.useState(null);
-  const tmr = React.useRef();
+  const tmr = React.useRef(); const busy = React.useRef(false); // 다음 행으로 넘어가는 0.26초 동안 들어온 클릭은 무시(같은 행 덮어쓰기 방지)
   const nextOf = (t,from) => { for(let k=1;k<=n;k++){ const j=(from+k)%n; if(t[j]===undefined) return j; } return null; };
-  const setCur = i => { clearTimeout(tmr.current); setCurS(i); };
-  const set = c => { if(cur==null) return; const i=cur, prev=tags[i]; const t=tags.slice(); t[i]=c; setTags(t);
+  const setCur = i => { clearTimeout(tmr.current); busy.current=false; setFlash(null); setCurS(i); };
+  const set = c => { if(cur==null||busy.current) return; busy.current=true; const i=cur, prev=tags[i]; const t=tags.slice(); t[i]=c; setTags(t);
     const ch = prev!==undefined && prev!==c;
     if(ch) setHist(H=>[...H,{line:i,from:prev,to:c,kind,when:TODAY}]);
     setStack(S=>[...S,{i,prev,ch}]); setFlash(i);
-    clearTimeout(tmr.current); tmr.current = setTimeout(()=>{ setFlash(null); setCurS(kind==='다시 읽기'?null:nextOf(t,i)); },260); };
+    clearTimeout(tmr.current); tmr.current = setTimeout(()=>{ busy.current=false; setFlash(null); setCurS(kind==='다시 읽기'?null:nextOf(t,i)); },260); };
   const undo = () => { if(!stack.length) return; const L=stack[stack.length-1]; setStack(stack.slice(0,-1));
     setTags(x=>{ const t=x.slice(); t[L.i]=L.prev; return t; }); if(L.ch) setHist(H=>H.slice(0,-1)); setCur(L.i); };
   return {tags,cur,setCur,hist,set,undo,canUndo:stack.length>0,flash,done:tags.every(x=>x!==undefined),count:tags.filter(x=>x!==undefined).length};
@@ -60,8 +60,8 @@ function Savor({a, go, onDone}){
   const [ready,setReady] = React.useState(false);
   React.useEffect(()=>{ const t=setTimeout(()=>setReady(true),4000); return ()=>clearTimeout(t); },[]);
   // 태깅 화면과 같은 자리(본문 위치 고정) — 버튼을 누르면 팔레트만 그 자리에 나타남
-  const TXW=Math.max(...w.lines.map(t=>[...t].length))*21+8, GX=Math.max(40,Math.round((1440-(TXW+146+paletteW(48,6)))/2)), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
-  const gaps=w.st.filter((s,i)=>i>0&&s!==w.st[i-1]).length; const sg=n>14?14:24; const rowH=Math.max(32,Math.min(52,Math.floor((900-208-36-gaps*sg)/n))); const fs=rowH<44?18:20;
+  const {FZ,TXW,GX}=pocoReadFit(a,w), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
+  const gaps=w.st.filter((s,i)=>i>0&&s!==w.st[i-1]).length; const sg=n>14?14:24; const rowH=Math.max(32,Math.min(52,Math.floor((900-208-36-gaps*sg)/n))); const fs=Math.round((rowH<44?18:20)*FZ);
   return <PFrame><TopNav go={go}/>
     <div style={{position:'absolute',left:GX,top:96,width:TXW+90}}>
       <div style={{display:'flex',alignItems:'baseline',gap:10,paddingLeft:16,marginBottom:28}}>
@@ -82,16 +82,19 @@ function ReadTag({a, up, go}){
   const [phase,setPhase] = React.useState('lines');
   const [rep,setRep] = React.useState(null); const [hv,setHv] = React.useState(null);
   const onRow = i => { setPhase('lines'); tg.setCur(tg.cur===i?null:i); };
-  const finish = () => up(s=>({tags:{...s.tags,[a.pk]:tg.tags},rep:{...s.rep,[a.pk]:rep},first:{...s.first,[a.pk]:(s.first||{})[a.pk]||tg.tags},rereads:s.tags[a.pk]?{...(s.rereads||{}),[a.pk]:[...((s.rereads||{})[a.pk]||[]),{tags:s.tags[a.pk],when:nowHM()}]}:s.rereads,hist:{...s.hist,[a.pk]:tg.hist},when:{...s.when,[a.pk]:TODAY},fresh:a.pk,prog:{...s.prog,[a.pk]:undefined},readInit:null,scr:'poem',justDone:true,drawer:null,cmpR:null}));
+  const finish = () => up(s=>{ const old=s.tags[a.pk]; const reH=old?tg.tags.map((c,i)=>old[i]!==c?{line:i,from:old[i],to:c,kind:'또 읽기',when:TODAY}:null).filter(Boolean):[];
+    return {tags:{...s.tags,[a.pk]:tg.tags},rep:{...s.rep,[a.pk]:rep},first:{...s.first,[a.pk]:(s.first||{})[a.pk]||tg.tags},rereads:old?{...(s.rereads||{}),[a.pk]:[...((s.rereads||{})[a.pk]||[]),{tags:old,when:nowHM()}]}:s.rereads,hist:{...s.hist,[a.pk]:old?[...((s.hist||{})[a.pk]||[]),...reH]:tg.hist},when:{...s.when,[a.pk]:TODAY},fresh:a.pk,prog:{...s.prog,[a.pk]:undefined},readInit:null,scr:'poem',justDone:true,drawer:null,cmpR:null}; });
+  // 새로고침해도 진행이 남도록, 행을 고를 때마다 진행 상태를 저장
+  React.useEffect(()=>{ if(tg.done) return; if(tg.count>0) up(s=>({prog:{...s.prog,[a.pk]:tg.tags}})); else up(s=>{ if(!(s.prog||{})[a.pk]) return {}; const P={...s.prog}; delete P[a.pk]; return {prog:P}; }); },[tg.tags]); // 되돌리기로 0행이 되면 진행 기록도 지움
   const rc = hv||rep;
   // 시 본문 폭 = 가장 긴 행에 맞춤 → 색 칸이 행 바로 뒤, 팔레트도 그 옆으로
-  const TXW=Math.max(...w.lines.map(t=>[...t].length))*21+8, GX=Math.max(40,Math.round((1440-(TXW+146+paletteW(48,6)))/2)), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
+  const {FZ,TXW,GX}=pocoReadFit(a,w), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
   // 마지막 행까지 고르면 '행을 눌러 고르세요' 단계 없이 바로 완료 화면으로
   React.useEffect(()=>{ if(phase==='lines' && tg.done && tg.cur==null && tg.flash==null){ const t=setTimeout(finish,350); return ()=>clearTimeout(t); } },[tg.done,tg.cur,tg.flash,phase]);
   const goSave = (scr,ex) => { up(s=>({prog:{...s.prog,[a.pk]:tg.tags}})); go(scr,ex); };
   return <PFrame><TopNav go={goSave}/>
     {/* 스크롤 없음: 시 전체가 한 화면. 행 높이는 행 수에 맞춰 44~52px */}
-    {(()=>{ const gaps=w.st.filter((s,i)=>i>0&&s!==w.st[i-1]).length; const sg=n>14?14:24; const rowH=Math.max(32,Math.min(52,Math.floor((900-208-36-gaps*sg)/n))); const fs=rowH<44?18:20;
+    {(()=>{ const gaps=w.st.filter((s,i)=>i>0&&s!==w.st[i-1]).length; const sg=n>14?14:24; const rowH=Math.max(32,Math.min(52,Math.floor((900-208-36-gaps*sg)/n))); const fs=Math.round((rowH<44?18:20)*FZ);
       return <div style={{position:'absolute',left:GX,top:104,width:TXW+90}}>
         <div style={{display:'flex',alignItems:'baseline',gap:14,paddingLeft:16}}>
           <div style={{font:`700 22px ${T.serif}`,color:T.ink,whiteSpace:'nowrap'}}>「{w.title}」</div>
@@ -127,11 +130,17 @@ function ReadTag({a, up, go}){
   </PFrame>;
 }
 
+// 설정 '본문 글자 크기' → 읽기 화면 글자 배율
+const pocoFontScale = a => ({'작게':.9,'기본':1,'크게':1.12})[((a&&a.settings)||{}).font||'기본']||1;
+// 읽기·태깅 배치: 본문+팔레트 묶음이 왼쪽 여백 40과 오른쪽 진행 표시 열(1352부터) 사이에 들어가게. 긴 시는 글자를 줄여 맞춤
+const pocoReadFit = (a,w) => { const base=Math.max(...w.lines.map(t=>[...t].length))*21+8, pw=paletteW(48,6), RIGHT=1440-48-44, L=40;
+  const maxTX=RIGHT-L-146-pw; const FZ=Math.min(pocoFontScale(a), maxTX/base); const TXW=Math.round(base*FZ);
+  const GX=Math.max(L,Math.min(Math.round((1440-(TXW+146+pw))/2), RIGHT-(TXW+146+pw))); return {FZ,TXW,GX}; };
 // 이유 한 줄(선택): 고른 행 바로 아래, 입력 1칸 · Enter로 저장 · 다시 누르면 고치기. 바코드 나란히 보기의 '내가 이 색을 고른 이유'와 같은 기록
 function PhReason({a, up, k, i, onColor, pal}){
   const key=k+'|'+i+'|me'; const saved=((a.why||{})[key]||{}).t||'';
   const [t,setT]=React.useState(saved); const [ed,setEd]=React.useState(!saved);
-  const save=()=>{ const v=t.trim(); up(s=>{ const W={...(s.why||{})}; if(v) W[key]={t:v}; else delete W[key]; return {why:W}; }); setEd(!v); };
+  const save=()=>{ const v=t.trim(); up(s=>withMyWhy(s,k,i,v)); setEd(!v); };
   const colorBtn = onColor && <PBtn kind="text" h={44} onClick={onColor} style={{padding:'0 6px'}}>{pal?'닫기':'색 바꾸기'}</PBtn>;
   return <div style={{display:'flex',alignItems:'center',gap:8,animation:'pkIn .14s both'}}>
     {ed ? <div style={{display:'flex',alignItems:'center',gap:8,width:250,border:`1px solid ${t?T.ink2:T.line}`,borderRadius:6,background:T.surface,padding:'0 6px 0 14px'}}>
@@ -162,7 +171,7 @@ function Reread({a, up, go}){
         <div style={{font:`500 14px ${T.sans}`,color:T.caption,marginBottom:6}}>다시 읽기</div>
         <div style={{font:`700 32px/1.3 ${T.serif}`,color:T.ink}}>「{w.title}」</div>
         <div style={{font:`400 15px ${T.sans}`,color:T.ink2,margin:'28px 0 18px 56px'}}>바꾸고 싶은 행을 눌러 다시 고르세요. 이전 색은 기록에 남아요.</div>
-        <PoemRows w={w} tags={tg.tags} cur={tg.cur} prev={first} onRow={i=>tg.setCur(tg.cur===i?null:i)} flash={tg.flash} side={tg.cur!=null ? <PhReason key={'r'+tg.cur} a={a} up={up} k={a.pk} i={tg.cur} onColor={()=>setPal(p=>!p)} pal={pal}/> : null} under={tg.cur!=null && pal ? <TagPanel key={tg.cur} tg={tg}/> : null}/>
+        <PoemRows w={w} fs={Math.round(20*pocoFontScale(a))} tags={tg.tags} cur={tg.cur} prev={first} onRow={i=>tg.setCur(tg.cur===i?null:i)} flash={tg.flash} side={tg.cur!=null ? <PhReason key={'r'+tg.cur} a={a} up={up} k={a.pk} i={tg.cur} onColor={()=>setPal(p=>!p)} pal={pal}/> : null} under={tg.cur!=null && pal ? <TagPanel key={tg.cur} tg={tg}/> : null}/>
       </div>
     </div>
     <div style={{position:'absolute',left:1196,top:112,width:212,bottom:120,display:'flex',flexDirection:'column',fontSize:12}}>
@@ -217,4 +226,4 @@ function MobileRead({pk='cpd', init}){
     </div>
   </div>;
 }
-Object.assign(window,{PhReason,useTagging,PoemRows,TagPanel,Read,Reread,MobileRead});
+Object.assign(window,{pocoFontScale,pocoReadFit,PhReason,useTagging,PoemRows,TagPanel,Read,Reread,MobileRead});

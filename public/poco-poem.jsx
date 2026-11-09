@@ -76,8 +76,9 @@ function PhBody({a, up, k}){
   const view=a.pv||'me'; const showR=view==='friends'&&FR.length>0, showAll=view==='all';
   const one=view==='me'&&a.cmpR!=null&&NM0[a.cmpR]?{nm:NM0[a.cmpR],r:a.cmpR}:null; // 내 색 탭에서 친구 한 명만 골라 보기
   const [hv,setHv]=React.useState(null); // {i, who, c}
+  React.useEffect(()=>{ if(!a.bub) return; const h=e=>{ if(e.key==='Escape' && !(e.target&&/^(INPUT|TEXTAREA)$/.test(e.target.tagName)&&e.target.value.trim())) up({bub:null}); }; /* 쓰던 글이 있으면 Esc로 닫지 않음(빈 입력칸이면 닫힘) */ window.addEventListener('keydown',h); return ()=>window.removeEventListener('keydown',h); },[a.bub]);
   const bub=a.bub||null; // 말풍선: {i, r}  r=-1 → 내 이유, r>=0 → 그 친구의 이유 + 답글
-  const WHY=a.why||{}; const cntOf=i=>{ let c=0; if(WHY[k+'|'+i+'|me']) c++; FR.forEach(({r})=>{ const W=WHY[k+'|'+i+'|'+r]; if(hasWhy(k,i,r)) c++; if(W&&W.thread) c+=W.thread.length; }); return c; };
+  const WHY=a.why||{}; const cntOf=i=>{ let c=0; if(WHY[k+'|'+i+'|me']) c++; FR.forEach(({r})=>{ const W=WHY[k+'|'+i+'|'+r]; if(seedWhy(k,i,r)) c++; if(W&&W.thread) c+=W.thread.length; }); return c; };
   const ok=c=>c&&c!=='T1'&&c!=='SKIP'&&PC[c];
   // 전체 독자 분포(시연): 그 행에 실제로 고른 색 + 같은 색상 계열(밝기만 다른 색)이 주로 나오게 시드로 나눔 → 막대마다 비슷한 색끼리 모임
   const N=w.readers||40;
@@ -90,10 +91,16 @@ function PhBody({a, up, k}){
   const RIGHTW=340, fs=20; // 오른쪽 열(말풍선/바코드)은 본문 바로 옆에 붙음
   // 가장 긴 행의 실제 글자 폭을 캔버스로 재서 본문 열 폭을 정함(자간 .02em 포함) → 어떤 시든 행이 넘치지 않음
   const measure=()=>{ const cv=document.createElement('canvas').getContext('2d'); cv.font=`400 ${fs}px ${T.serif}`; return Math.ceil(Math.max(...w.lines.map(x=>cv.measureText(x).width+[...x].length*fs*0.02)))+2; };
-  const [TW0,setTW]=React.useState(measure); const TW=Math.min(TW0,440); // 440 넘는 긴 행은 두 줄로 접음 → 짧은 시에서 색 칸이 멀어지지 않음
+  const [TW0,setTW]=React.useState(measure); const TW=TW0; // 행은 접지 않음: 가장 긴 행 폭만큼 본문 열이 넓어지고, 색 칸·말풍선·바코드 열은 그만큼 오른쪽으로 밀림
   React.useEffect(()=>{ setTW(measure()); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>setTW(measure())); },[k]);
   const SQ=36;
-  const rowRefs=React.useRef([]); const [,tick]=React.useState(0); React.useEffect(()=>{ tick(x=>x+1); },[bub&&bub.i,bub&&bub.r,TW,view]);
+  const rowRefs=React.useRef([]); React.useEffect(()=>{ if(!a.bub) return; const t=setTimeout(()=>{ const el=rowRefs.current[a.bub.i]; if(el) el.scrollIntoView({block:'center',behavior:'smooth'}); },60); return ()=>clearTimeout(t); },[]); // 다른 화면에서 말풍선을 연 채로 들어오면 그 행으로
+  // 친구·전체 탭에서 본문 열이 넓어 오른쪽 말풍선 열(RIGHTW)이 화면 밖으로 나가면: 오른쪽 열을 접고 말풍선을 그 행 바로 아래(행 오른쪽 끝 정렬)에 띄움
+  const leftR=React.useRef(); const [under,setUnder]=React.useState(false);
+  React.useLayoutEffect(()=>{ const el=leftR.current; if(!el) return; let box=el.parentElement; while(box&&!/(auto|scroll)/.test(getComputedStyle(box).overflowY)) box=box.parentElement;
+    const r=el.getBoundingClientRect(), sc=r.width/(el.offsetWidth||1), lim=box?box.getBoundingClientRect().right:window.innerWidth;
+    const need=(showR||showAll) && r.right+(24+RIGHTW+24)*sc>lim; if(need!==under) setUnder(need); });
+  const [,tick]=React.useState(0); React.useEffect(()=>{ const h=()=>tick(x=>x+1); window.addEventListener('resize',h); return ()=>window.removeEventListener('resize',h); },[]); /* 창 크기가 바뀌면 다시 재서 말풍선 배치 갱신 */ React.useEffect(()=>{ tick(x=>x+1); },[bub&&bub.i,bub&&bub.r,TW,view]);
   const rowTop=i=>{ const el=rowRefs.current[i]; if(el) return el.offsetTop; let y=(showR||showAll)?40:0; for(let j=0;j<=i;j++){ if(j>0&&w.st[j]!==w.st[j-1]) y+=20; if(j<i) y+=52; } return y; };
   const seg=(key,l,on,fn,ic)=><div key={key} className="pk-hit" onClick={fn} style={{height:36,padding:'0 14px',display:'inline-flex',alignItems:'center',gap:8,font:`${on?700:400} 13px ${T.sans}`,background:on?T.band:T.surface,color:on?T.ink:T.ink2,whiteSpace:'nowrap'}}>{ic}{l}</div>;
   const switcher=<div style={{display:'flex',border:`1px solid ${T.line}`,borderRadius:18,overflow:'hidden'}}>
@@ -102,11 +109,11 @@ function PhBody({a, up, k}){
     {seg('all',`전체 독자 ${N}명`,view==='all',()=>up({pv:'all',cmpR:null}),<span style={{display:'inline-flex',gap:1}}>{['SY','SO','SB','A1'].map(c=><span key={c} style={{width:5,height:12,background:PC[c][1]}}></span>)}</span>)}</div>;
   const bar=(i,segs)=><div style={{display:'flex',marginLeft:12,width:260,flex:'none',height:SQ,borderRadius:3,overflow:'hidden',gap:segs.length<=6?2:0}} onMouseLeave={()=>setHv(null)}>
     {segs.map((s,j)=><div key={j} onMouseEnter={()=>setHv({i,...s})} title={`${s.who} · ${pcLabel(s.c)||'비움'}`} style={{width:`${s.p*100}%`,background:ok(s.c)?PC[s.c][1]:'transparent',border:ok(s.c)?'none':`1px dashed ${T.disabled}`,boxSizing:'border-box',outline:hv&&hv.i===i&&hv.who===s.who?`2px solid ${T.ink}`:'none',outlineOffset:-2,opacity:hv&&hv.i===i&&hv.who!==s.who?.45:1,transition:'opacity .1s'}}></div>)}</div>;
-  const hint=i=>hv&&hv.i===i && <span style={{marginLeft:12,font:`500 12px ${T.sans}`,color:T.ink,whiteSpace:'nowrap',width:150,flex:'none'}}>{hv.who} · {pcName(hv.c)||'비움'}</span>;
+  const hint=i=>hv&&hv.i===i && <span style={{position:'relative',width:0,marginLeft:-16,flex:'none',alignSelf:'stretch'}}><span style={{position:'absolute',left:-244,bottom:'calc(100% - 4px)',font:`500 12px ${T.sans}`,color:'#fff',background:T.ink,borderRadius:4,padding:'3px 8px',whiteSpace:'nowrap',pointerEvents:'none',zIndex:3}}>{hv.who} · {pcName(hv.c)||'비움'}</span></span>; /* 막대 위에 겹쳐 띄움: 행 폭이 바뀌지 않게 */
   return <PhSec t="본문과 내 색" style={{marginTop:36}} right={switcher}>
     {view==='friends' && FR.length===0 && <div style={{margin:'0 0 16px',padding:'14px 18px',background:T.band,borderRadius:6,font:`400 14px ${T.sans}`,color:T.ink2}}>이 시를 읽은 독자 중 팔로우하는 친구가 아직 없어요. 전체 독자의 색을 보거나, 프로필에서 독자를 팔로우해 보세요.</div>}
     <div style={{display:'flex',gap:24,alignItems:'flex-start',marginRight:-180}}>
-      <div style={{flex:'none',position:'relative'}}>
+      <div ref={leftR} style={{flex:'none',position:'relative'}}>
        <div style={{width:'max-content',position:'relative'}}>
         {one && <div style={{display:'flex',alignItems:'flex-end',gap:16,padding:'0 12px',height:40}}>
           <span style={{width:20}}></span><span style={{width:TW,flex:'none'}}></span>
@@ -117,19 +124,21 @@ function PhBody({a, up, k}){
           </div>}
         {w.lines.map((t,i)=><React.Fragment key={i}><div className="pk-hit pk-row" onClick={()=>up({bub:bub&&bub.i===i&&bub.r===-1?null:{i,r:-1}})} title="누르면 이 색을 고른 이유를 남길 수 있어요" ref={el=>{ rowRefs.current[i]=el; }} style={{display:'flex',alignItems:'center',gap:16,minHeight:52,padding:'4px 12px',boxSizing:'border-box',borderRadius:4,marginTop:i>0&&w.st[i]!==w.st[i-1]?20:0,background:bub&&bub.i===i?T.band:undefined}}>
             <span style={{width:20,flex:'none',textAlign:'right',font:`400 11px ${T.sans}`,color:T.num}}>{i+1}</span>
-            <span style={{width:TW,minWidth:TW,maxWidth:TW,flex:'none',font:`400 ${fs}px/1.5 ${T.serif}`,color:T.ink,letterSpacing:'.02em',whiteSpace:'normal',wordBreak:'keep-all',overflowWrap:'anywhere'}}>{t}</span>
+            <span style={{width:TW,minWidth:TW,maxWidth:TW,flex:'none',font:`400 ${fs}px/1.5 ${T.serif}`,color:T.ink,letterSpacing:'.02em',whiteSpace:'nowrap'}}>{t}</span>
             {one ? <Sq key={'o'+one.r} c={w.data[i][one.r]} w={SQ} title={`${one.nm} · ${pcLabel(w.data[i][one.r])||'비움'}`} style={{animation:'pkIn .12s both'}}/> : <Sq c={mine[i]} w={SQ} title={`나 · ${pcLabel(mine[i])}`}/>}
-            {showR && <div style={{display:'flex',gap:4,marginLeft:12}} onMouseLeave={()=>setHv(null)}>{FR.map(({nm,r})=><div key={r} onMouseEnter={()=>setHv({i,who:nm,c:w.data[i][r]})} onClick={e=>{ e.stopPropagation(); up({bub:bub&&bub.i===i&&bub.r===r?null:{i,r}}); }} style={{position:'relative',width:SQ,height:SQ,flex:'none',outline:hv&&hv.i===i&&hv.who===nm?`2px solid ${T.ink}`:'none',outlineOffset:2,borderRadius:3,opacity:hv&&hv.i===i&&hv.who!==nm?.45:1,transition:'opacity .1s'}}><Sq c={w.data[i][r]} w={SQ} title=""/>{hv&&hv.i===i&&hv.who===nm && <span style={{position:'absolute',left:'50%',bottom:'calc(100% + 6px)',transform:'translateX(-50%)',background:T.ink,color:'#fff',font:`500 12px ${T.sans}`,padding:'4px 8px',borderRadius:4,whiteSpace:'nowrap',pointerEvents:'none',zIndex:3}}>{nm}</span>}{hasWhy(k,i,r) && <span style={{position:'absolute',right:-3,top:-3,width:9,height:9,borderRadius:'50%',background:T.ink,border:`1.5px solid ${PAPER}`}}></span>}</div>)}</div>}
+            {showR && <div style={{display:'flex',gap:4,marginLeft:12}} onMouseLeave={()=>setHv(null)}>{FR.map(({nm,r})=><div key={r} onMouseEnter={()=>setHv({i,who:nm,c:w.data[i][r]})} onClick={e=>{ e.stopPropagation(); up({bub:bub&&bub.i===i&&bub.r===r?null:{i,r}}); }} style={{position:'relative',width:SQ,height:SQ,flex:'none',outline:hv&&hv.i===i&&hv.who===nm?`2px solid ${T.ink}`:'none',outlineOffset:2,borderRadius:3,opacity:hv&&hv.i===i&&hv.who!==nm?.45:1,transition:'opacity .1s'}}><Sq c={w.data[i][r]} w={SQ} title=""/>{hv&&hv.i===i&&hv.who===nm && <span style={{position:'absolute',left:'50%',bottom:'calc(100% + 6px)',transform:'translateX(-50%)',background:T.ink,color:'#fff',font:`500 12px ${T.sans}`,padding:'4px 8px',borderRadius:4,whiteSpace:'nowrap',pointerEvents:'none',zIndex:3}}>{nm}</span>}{seedWhy(k,i,r) && <span style={{position:'absolute',right:-3,top:-3,width:9,height:9,borderRadius:'50%',background:T.ink,border:`1.5px solid ${PAPER}`}}></span>}</div>)}</div>}
             {showAll && bar(i,allDist[i].map(([c,cnt])=>({who:`${cnt}명`,c,p:cnt/N})))}
             {showAll && hint(i)}
             {cntOf(i)>0 && <span className="pk-hit" onClick={e=>{ e.stopPropagation(); up({bub:bub&&bub.i===i&&bub.r==='all'?null:{i,r:'all'}}); }} title="이 행에 남긴 이유와 답글 보기" style={{display:'inline-flex',alignItems:'center',gap:4,height:32,padding:'0 8px',marginLeft:4,borderRadius:16,font:`${bub&&bub.i===i&&bub.r==='all'?700:400} 12px ${T.sans}`,color:bub&&bub.i===i&&bub.r==='all'?T.ink:T.caption,background:bub&&bub.i===i&&bub.r==='all'?T.surface:'transparent',whiteSpace:'nowrap'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="M4 5h16v11H9l-5 4z"></path></svg>{cntOf(i)}</span>}
           </div>
           </React.Fragment>)}
+        {bub && under && <div style={{position:'absolute',right:0,width:RIGHTW,top:rowTop(bub.i)+56,zIndex:4}}>
+          <PhBubble key={bub.i+'|'+bub.r} a={a} up={up} k={k} i={bub.i} r={bub.r} friends={FR} nm={bub.r==='all'?'':bub.r>=0?NM0[bub.r]:ME} c={bub.r==='all'?null:bub.r>=0?w.data[bub.i][bub.r]:mine[bub.i]} top={0} below/></div>}
        </div>
       </div>
       {/* 오른쪽 열은 항상 같은 폭(320) → 말풍선이 열려도 왼쪽 행 폭이 변하지 않음 */}
-      <div style={{width:RIGHTW,flex:'none',position:'relative',alignSelf:'stretch'}}>
-      {bub && <>
+      <div style={{width:under?0:RIGHTW,flex:'none',position:'relative',alignSelf:'stretch'}}>
+      {bub && !under && <>
         <PhBubble key={bub.i+'|'+bub.r} a={a} up={up} k={k} i={bub.i} r={bub.r} friends={FR} nm={bub.r==='all'?'':bub.r>=0?NM0[bub.r]:ME} c={bub.r==='all'?null:bub.r>=0?w.data[bub.i][bub.r]:mine[bub.i]} top={rowTop(bub.i)}/>
       </>}
       {!bub && !showAll && !showR && <div style={{width:170,position:'sticky',top:24}}>
@@ -149,24 +158,26 @@ function PhBody({a, up, k}){
 }
 // 친구가 그 행에 이유를 남겼는지(시연 시드: 약 1/3 행)
 const hasWhy=(k,i,r)=>mulberry32(hashStr(k+'|'+i+'|'+r+'|has'))()<0.16;
+// 친구가 그 행에 남긴 이유(시연): 그 행에 행 반응(REACTS0)이 있으면 반응 글과 같은 내용을 쓰고(한 사람 한 글), 없으면 시드 문장
+const seedWhy=(k,i,r)=>{ const nm=namesOf(WORKS[k])[r]; const L=(REACTS0[k]||{})[i]; if(L){ const x=L.find(y=>y.n===nm); return x?x.t:null; } return hasWhy(k,i,r)?WHY_SEED[Math.floor(mulberry32(hashStr(k+'|'+i+'|'+r))()*WHY_SEED.length)]:null; };
 // 말풍선: 행 아래, 누른 칸 위치에서 시작. 내 칸 → 내 이유 쓰기/고치기. 친구 칸 → 친구의 이유 + 답글 목록 + 답글 쓰기
-function PhBubble({a, up, k, i, r, nm, c, top, friends=[]}){
-  if(r==='all') return <PhRowThread a={a} up={up} k={k} i={i} top={top} friends={friends}/>;
+function PhBubble({a, up, k, i, r, nm, c, top, friends=[], below}){
+  if(r==='all') return <PhRowThread a={a} up={up} k={k} i={i} top={top} friends={friends} below={below}/>;
   const me=r<0, key=me?k+'|'+i+'|me':k+'|'+i+'|'+r, W=(a.why||{})[key]||{};
   const [t,setT]=React.useState(me?(W.t||''):''); const [edit,setEdit]=React.useState(!W.t);
   const save=patch=>up(s=>({why:{...(s.why||{}),...patch}}));
-  const theirs=!me&&hasWhy(k,i,r)?WHY_SEED[Math.floor(mulberry32(hashStr(key))()*WHY_SEED.length)]:null;
+  const theirs=!me?seedWhy(k,i,r):null;
   const th=W.thread||[];
   // 답글을 남기면 그 친구에게 알림(시연: 상태에 쌓고 토스트로 확인)
   const notify=txt=>up(s=>({notifs:[...(s.notifs||[]),{to:nm,from:ME,pk:k,i,t:txt,when:TODAY}],toast:`${nm} 님에게 알림을 보냈어요`}));
-  const input=(ph,onSend)=><div style={{display:'flex',alignItems:'center',gap:6,border:`1px solid ${t?T.ink2:T.line}`,borderRadius:6,background:T.surface,padding:'0 4px 0 12px'}}>
-    <input autoFocus value={t} onChange={e=>setT([...e.target.value].slice(0,REACT_MAX).join(''))} onKeyDown={e=>{ if(e.key==='Enter'&&!e.nativeEvent.isComposing&&t.trim()){ e.preventDefault(); onSend(); } }} placeholder={ph} style={{flex:1,minWidth:0,height:44,border:'none',outline:'none',background:'transparent',font:`400 14px ${T.sans}`,color:T.ink}}/>
-    <span style={{font:`400 11px ${T.sans}`,color:T.caption}}>{[...t].length}/{REACT_MAX}</span><PBtn kind="text" h={44} disabled={!t.trim()} onClick={onSend}>남기기</PBtn></div>;
+  const input=(ph,onSend,canEmpty)=><div style={{display:'flex',alignItems:'center',gap:6,border:`1px solid ${t?T.ink2:T.line}`,borderRadius:6,background:T.surface,padding:'0 4px 0 12px'}}>
+    <input autoFocus value={t} onChange={e=>setT([...e.target.value].slice(0,REACT_MAX).join(''))} onKeyDown={e=>{ if(e.key==='Enter'&&!e.nativeEvent.isComposing&&(t.trim()||canEmpty)){ e.preventDefault(); onSend(); } }} placeholder={ph} style={{flex:1,minWidth:0,height:44,border:'none',outline:'none',background:'transparent',font:`400 14px ${T.sans}`,color:T.ink}}/>
+    <span style={{font:`400 11px ${T.sans}`,color:T.caption}}>{[...t].length}/{REACT_MAX}</span><PBtn kind="text" h={44} disabled={!t.trim()&&!canEmpty} onClick={onSend}>남기기</PBtn></div>;
   return <div onClick={e=>e.stopPropagation()} style={{position:'absolute',left:0,right:0,top,background:T.surface,border:`1px solid ${T.line}`,borderRadius:10,padding:'14px 16px',boxShadow:'0 6px 18px rgba(0,0,0,.06)',animation:'pkIn .12s both'}}>
-    <div style={{position:'absolute',left:-7,top:16,width:12,height:12,background:T.surface,borderLeft:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,transform:'rotate(45deg)'}}></div>
+    <div style={below?{position:'absolute',right:28,top:-7,width:12,height:12,background:T.surface,borderLeft:`1px solid ${T.line}`,borderTop:`1px solid ${T.line}`,transform:'rotate(45deg)'}:{position:'absolute',left:-7,top:16,width:12,height:12,background:T.surface,borderLeft:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,transform:'rotate(45deg)'}}></div>
     <div style={{display:'flex',alignItems:'center',gap:10}}><PhPic nm={nm} s={28} me={me}/><span style={{font:`700 14px ${T.sans}`,color:T.ink,whiteSpace:'nowrap'}}>{nm}</span>{!me && <span style={{font:`400 12px ${T.sans}`,color:T.caption,whiteSpace:'nowrap'}}>이 색을 고른 이유</span>}
       <div style={{flex:1}}></div><span className="pk-hit" onClick={()=>up({bub:null})} style={{font:`400 18px ${T.sans}`,color:T.caption,padding:'0 4px'}}>×</span></div>
-    {me ? (edit ? <div style={{marginTop:12}}>{input('왜 이 색이었는지 짧게 남겨 보세요',()=>{ save({[key]:{...W,t:t.trim()}}); setEdit(false); })}</div>
+    {me ? (edit ? <div style={{marginTop:12}}>{input('왜 이 색이었는지 짧게 남겨 보세요',()=>{ const v=t.trim(); up(s=>withMyWhy(s,k,i,v)); setEdit(!v); },!!W.t)}</div>
         : <div style={{marginTop:10,display:'flex',alignItems:'flex-start',gap:12}}><div style={{flex:1,font:`400 15px/1.6 ${T.sans}`,color:T.ink}}>{W.t}</div><span className="pk-link" onClick={()=>setEdit(true)} style={{font:`400 13px ${T.sans}`,whiteSpace:'nowrap',height:32,display:'inline-flex',alignItems:'center'}}>고치기</span></div>)
       : <>
         <div style={{marginTop:10,font:`400 15px/1.6 ${T.sans}`,color:theirs?T.ink:T.caption}}>{theirs||'아직 이 색을 고른 이유를 남기지 않았어요.'}</div>
@@ -229,17 +240,17 @@ function PhPoemTalk({a, up, k, reacts}){
   </PhSec>;
 }
 // 행 끝 말풍선 숫자를 누르면: 이 행에서 친구들이 고른 색 + 이유 + 답글을 한 번에. 각 항목의 '답글'로 그 친구 말풍선으로 이동
-function PhRowThread({a, up, k, i, top, friends}){
+function PhRowThread({a, up, k, i, top, friends, below}){
   const w=WORKS[k], WHY=a.why||{}, mineW=WHY[k+'|'+i+'|me'];
-  const items=friends.filter(({r})=>hasWhy(k,i,r)||((WHY[k+'|'+i+'|'+r]||{}).thread||[]).length);
+  const items=friends.filter(({r})=>seedWhy(k,i,r)||((WHY[k+'|'+i+'|'+r]||{}).thread||[]).length);
   return <div onClick={e=>e.stopPropagation()} style={{position:'absolute',left:0,right:0,top,background:T.surface,border:`1px solid ${T.line}`,borderRadius:10,padding:'8px 16px',boxShadow:'0 6px 18px rgba(0,0,0,.06)',animation:'pkIn .12s both'}}>
-    <div style={{position:'absolute',left:-7,top:16,width:12,height:12,background:T.surface,borderLeft:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,transform:'rotate(45deg)'}}></div>
+    <div style={below?{position:'absolute',right:28,top:-7,width:12,height:12,background:T.surface,borderLeft:`1px solid ${T.line}`,borderTop:`1px solid ${T.line}`,transform:'rotate(45deg)'}:{position:'absolute',left:-7,top:16,width:12,height:12,background:T.surface,borderLeft:`1px solid ${T.line}`,borderBottom:`1px solid ${T.line}`,transform:'rotate(45deg)'}}></div>
     <span className="pk-hit" onClick={()=>up({bub:null})} style={{position:'absolute',right:10,top:8,font:`400 18px ${T.sans}`,color:T.caption,padding:'0 6px',lineHeight:'24px'}}>×</span>
     <div className="pp-th" style={{display:'flex',flexDirection:'column',marginTop:-4,paddingRight:24}}>
       {mineW && <div style={{padding:'12px 0',borderBottom:`1px solid ${T.line}`}}>
         <div style={{display:'flex',alignItems:'center',gap:10}}><PhPic nm={ME} s={26} me/><span style={{font:`700 13px ${T.sans}`,color:T.ink}}>{ME}</span><Sq c={a.tags[k][i]} w={18} r={3}/><span style={{font:`400 12px ${T.sans}`,color:T.caption}}>{pcName(a.tags[k][i])}</span></div>
         <div style={{font:`400 14px/1.6 ${T.sans}`,color:T.ink,margin:'6px 0 0 36px'}}>{mineW.t}</div></div>}
-      {items.map(({nm,r})=>{ const key=k+'|'+i+'|'+r, W=WHY[key]||{}, th=W.thread||[], theirs=hasWhy(k,i,r)?WHY_SEED[Math.floor(mulberry32(hashStr(key))()*WHY_SEED.length)]:null;
+      {items.map(({nm,r})=>{ const key=k+'|'+i+'|'+r, W=WHY[key]||{}, th=W.thread||[], theirs=seedWhy(k,i,r);
         return <div key={r} style={{padding:'12px 0',borderBottom:`1px solid ${T.line}`}}>
           <div style={{display:'flex',alignItems:'center',gap:10}}><PhPic nm={nm} s={26}/><span style={{font:`700 13px ${T.sans}`,color:T.ink}}>{nm}</span><Sq c={w.data[i][r]} w={18} r={3}/><span style={{font:`400 12px ${T.sans}`,color:T.caption}}>{pcName(w.data[i][r])||'비움'}</span>
             <div style={{flex:1}}></div><span className="pk-link" onClick={()=>up({bub:{i,r}})} style={{font:`400 12px ${T.sans}`,height:32,display:'inline-flex',alignItems:'center'}}>답글{th.length?` ${th.length}`:''}</span></div>
@@ -268,4 +279,4 @@ function PhReactActs({a, up, id}){
     </div>}
   </div>;
 }
-Object.assign(window,{PhBody,PhBubble,PhRowThread,PhFriendCmp,hasWhy,PhPoemTalk,PhReactActs,PhPoem,POEM_INFO});
+Object.assign(window,{PhBody,PhBubble,PhRowThread,PhFriendCmp,hasWhy,seedWhy,PhPoemTalk,PhReactActs,PhPoem,POEM_INFO});

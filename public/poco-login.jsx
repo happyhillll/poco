@@ -29,16 +29,21 @@ function PhLogin({a, up, go}){
   const [f,setF] = React.useState(()=>({nick:'',email:'',pw:'',...(a.loginFill||{})}));
   const [err,setErr] = React.useState(a.loginErr||null);
   const set = k => v => { setF(s=>({...s,[k]:v})); setErr(null); };
-  const done = () => { localStorage.setItem('poco.authed','1'); localStorage.setItem('poco.onboarded','1'); up({authed:true}); go(a.next||'home',{authed:true}); };
+  // 온보딩 바코드(「사랑가」 11~14행)를 오늘의 시 진행으로 이어 저장
+  const done = () => { localStorage.setItem('poco.authed','1'); localStorage.setItem('poco.onboarded','1');
+    up(s=>{ if(!bar||s.tags.sar) return {authed:true}; const n=WORKS.sar.lines.length, off=n-bar.length; const p=contInit(s,'sar'); bar.forEach((c,j)=>{ if(p[off+j]===undefined) p[off+j]=c; }); return {authed:true,prog:{...s.prog,sar:p}}; });
+    go(a.next||'home',{authed:true,next:null,onbBar:null}); };
   const submit = () => {
     const miss = signup ? (!f.nick||!f.email||!f.pw) : (!f.email||!f.pw);
     if(miss) return setErr(signup?'닉네임·이메일·비밀번호를 모두 입력해 주세요.':'이메일과 비밀번호를 입력해 주세요.');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return setErr('이메일 주소 형식을 확인해 주세요.');
+    if(signup && [...f.pw].length<8) return setErr('비밀번호는 8자 이상으로 입력해 주세요.');
     done();
   };
-  const to = m => { setErr(null); up({mode:m}); };
+  const to = m => { setErr(null); go('login',{mode:m,next:a.next,onbBar:a.onbBar}); }; // 뒤로가기로 이전 단계에 돌아올 수 있게 화면 이동으로 기록
   const verb = signup?'회원가입':'로그인';
   const title = email ? `이메일로 ${verb}` : signup ? <React.Fragment>새로운 감각의 자극!<br/>POCO에 오신 것을 환영해요.</React.Fragment> : '로그인';
-  const sub = bar ? `${signup?'가입하면':'로그인하면'} 방금 만든 바코드가 나의 색 서재에 담겨요.` : null;
+  const sub = bar ? `${signup?'가입하면':'로그인하면'} 방금 만든 바코드가 나의 색 서재에 담겨요.` : a.next && a.next!=='home' && !signup ? '로그인하면 보려던 화면으로 바로 이어져요.' : null;
   const swap = <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:8,marginTop:20,font:`400 14px ${T.sans}`,color:T.caption}}>
     {signup?'이미 계정이 있으신가요?':'아직 회원이 아니신가요?'}
     <span className="pk-hit" onClick={()=>to(signup?'login':'signup')} style={{height:44,display:'inline-flex',alignItems:'center',font:`700 14px ${T.sans}`,color:T.ink}}>{signup?'로그인':'회원가입'}</span></div>;

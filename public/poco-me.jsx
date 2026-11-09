@@ -65,7 +65,7 @@ function PhMe({a, up, go}){
           {reading.length>0 && <div style={{paddingBottom:14}}>
             <div style={{font:`500 13px ${T.sans}`,color:T.ink2,marginBottom:10}}>읽는 중</div>
             <div style={{display:'flex',flexDirection:'column',gap:10}}>{reading.map(k=><div key={k} className="pk-hit" onClick={()=>go('read',{pk:k,readInit:contInit(a,k)})} style={{display:'flex',alignItems:'center',gap:14,minHeight:44}}>
-              <HBar colors={contInit(a,k)} st={WORKS[k].st} w={200} h={18} empty/><div><div style={{font:`500 15px ${T.serif}`,color:T.ink,whiteSpace:'nowrap'}}>{WORKS[k].title}</div><div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:2}}>{progOf(a,k)} / {WORKS[k].lines.length}행 · 이어 읽기</div></div></div>)}</div></div>}
+              <HBar colors={contInit(a,k)} st={WORKS[k].st} w={200} h={18} empty/><div><div style={{font:`500 15px ${T.serif}`,color:T.ink,whiteSpace:'nowrap'}}>{WORKS[k].title}</div><div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:2,whiteSpace:'nowrap'}}>{progOf(a,k)} / {WORKS[k].lines.length}행 · 이어 읽기</div></div></div>)}</div></div>}
         </div>
       </Sec>
       {/* 나의 색 띠: 모든 바코드를 한 줄로. 시 순서 ↔ 색 순서 */}
@@ -93,7 +93,7 @@ function PhMe({a, up, go}){
       <Sec t="다시 읽기 기록" n={hist.length}>
         {hist.length ? <div style={{display:'flex',flexDirection:'column',gap:18}}>{hist.map(({k,h})=>{ const w=WORKS[k], f=(a.first&&a.first[k])||a.tags[k], ch=h.map(x=>x.line);
           return <div key={k} className="pk-hit pk-row" onClick={()=>go('re',{pk:k})} style={{display:'flex',alignItems:'center',gap:24,padding:'14px 16px',borderRadius:6,border:`1px solid ${T.line}`,background:T.surface}}>
-            <div style={{width:200,flex:'none'}}><div style={{font:`500 17px ${T.serif}`,color:T.ink,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.title}</div><div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:3}}>{w.poet} · 고친 행 {h.length}</div></div>
+            <div style={{width:200,flex:'none'}}><div style={{font:`500 17px ${T.serif}`,color:T.ink,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.title}</div><div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:3}}>{w.poet} · 고친 행 {new Set(h.map(x=>x.line)).size}</div></div>
             <div style={{display:'flex',flexDirection:'column',gap:6}}>
               <div style={{display:'flex',alignItems:'center',gap:10}}><span style={{width:30,font:`400 11px ${T.sans}`,color:T.caption}}>처음</span><HBar colors={f} st={w.st} w={300} h={14}/></div>
               <div style={{display:'flex',alignItems:'center',gap:10}}><span style={{width:30,font:`400 11px ${T.sans}`,color:T.caption}}>지금</span><HBar colors={a.tags[k]} st={w.st} w={300} h={14} changed={ch}/></div></div>
@@ -115,7 +115,7 @@ function PhMe({a, up, go}){
       </Sec>
       {/* 내가 남긴 반응 */}
       <Sec t="내가 남긴 반응" n={myReacts.length} sub="행 단위 대화에 남긴 글. 누르면 그 행으로 가요.">
-        {myReacts.length ? <div style={{display:'flex',flexDirection:'column'}}>{myReacts.map(r=><div key={r.pk+'-'+r.id} className="pk-hit pk-row" onClick={()=>go('poem',{pk:r.pk,bub:{i:r.i,r:'all'}})} style={{display:'flex',alignItems:'flex-start',gap:16,padding:'14px 8px',borderBottom:`1px solid ${T.line}`,borderRadius:4}}>
+        {myReacts.length ? <div style={{display:'flex',flexDirection:'column'}}>{myReacts.map(r=><div key={r.pk+'-'+r.id} className="pk-hit pk-row" onClick={()=>go('poem',{pk:r.pk,bub:{i:r.i,r:-1}})} style={{display:'flex',alignItems:'flex-start',gap:16,padding:'14px 8px',borderBottom:`1px solid ${T.line}`,borderRadius:4}}>
             <Sq c={r.c} w={28} r={3} style={{marginTop:2}}/>
             <div style={{flex:1,minWidth:0}}><div style={{font:`400 15px/1.6 ${T.sans}`,color:T.ink}}>{r.t}</div>
               <div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>「{WORKS[r.pk].title}」 {r.i+1}행 · “{WORKS[r.pk].lines[r.i]}”</div></div></div>)}</div>
@@ -218,6 +218,15 @@ function PhHelp({a, up, go}){
   </PFrame>;
 }
 // ───────── 설정: 알림 · 공개 범위 · 계정 ─────────
+// 행별 색 기록 CSV: 시 키·제목·시인·행 번호·행·색 코드·색 이름·HEX(sRGB)·상태(done/reading)·날짜. UTF-8 BOM(엑셀 한글)
+function pocoExportCSV(a){
+  const q=v=>{ const t=v==null?'':String(v); return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t; };
+  const rows=[['poem_key','title','poet','line_no','line_text','color_code','color_name','hex_srgb','status','date']];
+  WORK_KEYS.forEach(k=>{ const w=WORKS[k], done=!!a.tags[k], cs=done?a.tags[k]:(a.prog||{})[k]; if(!cs||!cs.some(c=>c!==undefined&&c!==null)) return;
+    w.lines.forEach((t,i)=>{ const c=cs[i]; if(c===undefined||c===null) return; rows.push([k,w.title,w.poet,i+1,t,c,pcName(c),c&&PC[c]&&PC[c][1]||'',done?'done':'reading',done?((a.when||{})[k]||''):'']); }); });
+  const csv='\uFEFF'+rows.map(r=>r.map(q).join(',')).join('\r\n');
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); const el=document.createElement('a'); el.href=url; el.download='poco_line_colors.csv'; document.body.appendChild(el); el.click(); el.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function PhSettings({a, up, go}){
   const s=a.settings||{notifWhy:true,notifReply:true,notifFollow:true,scope:'all',font:'기본'};
   const set=patch=>up(st=>({settings:{...(st.settings||s),...patch}}));
@@ -241,10 +250,12 @@ function PhSettings({a, up, go}){
       <Row t="내가 남긴 이유 공개" sub="끄면 친구에게도 ‘아직 남기지 않았어요’로 보여요." right={<Toggle on={s.showWhy!==false} onChange={v=>set({showWhy:v})}/>}/>
       <H t="읽기"/>
       <Row t="본문 글자 크기" right={<Seg cur={s.font||'기본'} items={[['작게','작게'],['기본','기본'],['크게','크게']]} onPick={v=>set({font:v})}/>}/>
+      <H t="내 기록"/>
+      <Row t="행별 색 기록 내보내기 (CSV)" sub="다 읽은 시와 읽는 중인 시의 행마다 고른 색 코드·HEX(sRGB)를 한 파일로 받아요." right={<PBtn kind="secondary" h={40} onClick={()=>{ pocoExportCSV(a); say('CSV 파일을 내려받았어요'); }}>내보내기</PBtn>}/>
       <H t="계정"/>
       <Row t={ME} sub="night@poco.kr" right={<PBtn kind="secondary" h={40} onClick={()=>go('me')}>프로필 보기</PBtn>}/>
       <Row t="의견 보내기" sub="불편한 점이나 바라는 점을 알려 주세요." right={<PBtn kind="secondary" h={40} onClick={()=>say('의견 창은 시연에서 열리지 않아요')}>쓰기</PBtn>}/>
-      <Row t="로그아웃" right={<span className="pk-link" onClick={()=>{ up({authed:false}); go('login',{mode:'login'}); }} style={{font:`400 14px ${T.sans}`,height:44,display:'inline-flex',alignItems:'center'}}>로그아웃</span>}/>
+      <Row t="로그아웃" right={<span className="pk-link" onClick={()=>{ localStorage.removeItem('poco.authed'); up({authed:false}); go('login',{mode:'login'}); }} style={{font:`400 14px ${T.sans}`,height:44,display:'inline-flex',alignItems:'center'}}>로그아웃</span>}/>
       <Row t="계정 삭제" sub="바코드와 반응이 모두 지워지고 되돌릴 수 없어요." right={<span className="pk-link" onClick={()=>go('me')} style={{font:`400 14px ${T.sans}`,color:T.caption,height:44,display:'inline-flex',alignItems:'center'}}>프로필에서 진행</span>}/>
      </div>
     </div>

@@ -88,7 +88,8 @@ const readersOf = w => w.readers || w.rep.length;
 function List({a, go}){
   const [q,setQ] = React.useState(''); const [sort,setSort] = React.useState('pop');
   const k = q.trim(); let keys = WORK_KEYS.filter(id=>!k || WORKS[id].title.includes(k) || WORKS[id].poet.includes(k));
-  if(sort==='pop') keys = keys.slice().sort((x,y)=>BEST_KEYS.indexOf(x)-BEST_KEYS.indexOf(y)); // 홈 실시간 베스트와 같은 순서
+  const POP = WORK_KEYS.slice().sort((x,y)=>readersOf(WORKS[y])-readersOf(WORKS[x])); // 참여 인원(독자 수) 많은 순
+  if(sort==='pop') keys = keys.slice().sort((x,y)=>POP.indexOf(x)-POP.indexOf(y));
   const open = id => go('poem',{pk:id});
   return <PFrame><TopNav go={go} active="list"/>
     <style>{`.pk-cover{transition:transform .12s,box-shadow .12s}.pk-cover:hover{transform:translateY(-10px)}.pk-search::placeholder{color:${T.disabled}}.pk-ls{scrollbar-width:none}.pk-ls::-webkit-scrollbar{display:none}`}</style>
@@ -106,7 +107,7 @@ function List({a, go}){
         <div style={{display:'flex',border:`1px solid ${T.line}`,borderRadius:6,overflow:'hidden'}}>
           {[['pop','참여 많은 순'],['base','기본순']].map(([m,l])=><div key={m} className="pk-hit" onClick={()=>setSort(m)} style={{height:44,padding:'0 18px',display:'flex',alignItems:'center',whiteSpace:'nowrap',font:`${sort===m?700:400} 14px ${T.sans}`,background:sort===m?T.band:T.surface,color:sort===m?T.ink:T.ink2}}>{l}</div>)}</div></div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(5,200px)',justifyContent:'space-between',rowGap:32,marginTop:20}}>
-        {keys.map((id,i)=><WorkCover key={id} fav={(a.fav||[]).includes(id)} w={WORKS[id]} tags={a.tags[id]} mine={!!a.tags[id]} rank={sort==='pop'?i+1:undefined} trend={sort==='pop'?(BEST_TREND[BEST_KEYS.indexOf(id)]||'same'):undefined} onOpen={()=>open(id)}/>)}
+        {keys.map((id,i)=><WorkCover key={id} fav={(a.fav||[]).includes(id)} w={WORKS[id]} tags={a.tags[id]} mine={!!a.tags[id]} rank={sort==='pop'?POP.indexOf(id)+1:undefined} trend={sort==='pop'?(BEST_TREND[BEST_KEYS.indexOf(id)]||'same'):undefined} onOpen={()=>open(id)}/>)}
         {!keys.length && <div style={{gridColumn:'1 / -1',font:`400 15px ${T.sans}`,color:T.ink2}}>「{k}」{josa(k,'과','와').slice(k.length)} 맞는 시가 없어요.</div>}
       </div>
     </div></div>
@@ -255,10 +256,20 @@ function Convo({a, up, w, i, mine}){
 }
 
 // ───────── 앱 ─────────
+// 저장: 화면 이동·말풍선 같은 일시 상태는 빼고 사용자 기록만 localStorage 'poco.state.v1'에 JSON으로
+const POCO_KEY='poco.state.v1';
+const POCO_TRANSIENT=['authed','scr','step','back','convo','toast','drawer','bub','cmpR','pv','justDone','readInit','mode','next','onbBar','loginFill','loginErr','fmode','pk','tab','cr','fc','fm','fs','fg','sl','poet'];
+function pocoSave(a){ try{ const o={}; Object.keys(a).forEach(k=>{ if(!POCO_TRANSIENT.includes(k)) o[k]=a[k]; }); localStorage.setItem(POCO_KEY,JSON.stringify(o)); }catch(e){} }
+function pocoLoad(){ try{ const o=JSON.parse(localStorage.getItem(POCO_KEY)||'null'); if(!o||typeof o!=='object') return null; POCO_TRANSIENT.forEach(k=>delete o[k]); if(o.prog) Object.keys(o.prog).forEach(k=>{ o.prog[k]=Array.isArray(o.prog[k])?o.prog[k].map(x=>x===null?undefined:x):undefined; }); return o; }catch(e){ return null; } }
 function PocoApp({init}){
   // 로그인: 캔버스 프레임(init 있음)은 로그인 상태, 로그인 화면은 로그아웃. 프로토타입은 localStorage 'poco.authed'
   const authed0 = init&&init.authed!=null ? init.authed : init&&(init.scr==='login'||init.scr==='onb') ? false : init ? true : localStorage.getItem('poco.authed')==='1';
-  const [a,setA] = React.useState(()=>({authed:authed0,scr:localStorage.getItem('poco.onboarded')?'home':'onb',step:0,pk:'cpd',...JSON.parse(JSON.stringify(PH_INIT)),convo:null,readInit:null,reacts:JSON.parse(JSON.stringify(REACTS0)),...(init||{})}));
+  const [a,setA] = React.useState(()=>{ const myWhy={}; Object.entries(REACTS0).forEach(([pk,o])=>Object.entries(o).forEach(([i,L])=>L.forEach(r=>{ if(r.n===ME) myWhy[pk+'|'+i+'|me']={t:r.t}; })));
+    // 프로토타입(init 없음)에서는 내 기록(태깅·진행·찜·팔로우·반응 등)을 브라우저에 저장해 새로고침 뒤에도 이어짐
+    const base={...PH_INIT,why:myWhy,reacts:REACTS0}; const saved0 = init ? null : pocoLoad(); const saved = saved0 && {};
+    if(saved) Object.keys(saved0).forEach(k=>{ const v=saved0[k], b=base[k]; if(b===undefined || (v!==null && typeof v===typeof b && Array.isArray(v)===Array.isArray(b))) saved[k]=v; }); // 형식이 다른 값은 버리고 기본값 사용
+    return {authed:authed0,scr:localStorage.getItem('poco.onboarded')?'home':'onb',step:0,pk:'cpd',...JSON.parse(JSON.stringify(PH_INIT)),why:myWhy,convo:null,readInit:null,reacts:JSON.parse(JSON.stringify(REACTS0)),...(saved||{}),...(init||{})}; });
+  React.useEffect(()=>{ if(!init) pocoSave(a); },[a]);
   const up = p => setA(s=>({...s,...(typeof p==='function'?p(s):p)}));
   // 뒤로가기: 화면 이동마다 직전 위치를 쌓고, '__back'이면 하나 꺼냄(없으면 홈)
   // 시 한 편에 딸린 화면은 모두 시 화면(poem) 안의 상태로: 페이지 이동 없이 서랍·제자리 비교·모달
@@ -272,7 +283,7 @@ function PocoApp({init}){
     return go0(scr, extra); };
   const go0 = (scr, extra={}) => scr==='__back'
     ? up(s=>{ const B=(s.back||[]).slice(); const p=B.pop()||{scr:'home'}; return {...p,back:B,convo:null}; })
-    : up(s=>({back:[...(s.back||[]),{scr:s.scr,pk:s.pk,tab:s.tab,cr:s.cr,fc:s.fc,fm:s.fm,sl:s.sl,poet:s.poet,readInit:s.scr==='read'?contInit(s,s.pk):s.readInit}].slice(-30),scr,convo:null,...extra}));
+    : up(s=>({back:[...(s.back||[]),{scr:s.scr,mode:s.mode,next:s.next,pk:s.pk,tab:s.tab,cr:s.cr,fc:s.fc,fm:s.fm,sl:s.sl,poet:s.poet,readInit:s.scr==='read'?contInit(s,s.pk):s.readInit}].slice(-30),scr,convo:null,...extra}));
   const P = {a,up,go}; window.__pocoGo = go;
   const S = {onb:PocoOnb,home:PhHome,poem:PhPoem,me:PhMe,list:List,poets:PhPoets,read:Read,done:Done,work:Work,re:Reread,bar:PhBar,cmp:PhCmp,space:PhSpace,lib:PhLib,find:a.fmode==='sim'?PhSim:PhFind,sim:PhSim,text:PhText,user:PhUser,help:PhHelp,settings:PhSettings,login:PhLogin}[a.scr];
   return <PocoAuth.Provider value={!!a.authed}><S key={a.scr+a.pk+(a.scr==='find'?a.fmode:'')+(a.scr==='login'?a.mode:'')} {...P}/></PocoAuth.Provider>;
