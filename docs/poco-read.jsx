@@ -60,7 +60,7 @@ function Savor({a, go, onDone}){
   const [ready,setReady] = React.useState(false);
   React.useEffect(()=>{ const t=setTimeout(()=>setReady(true),4000); return ()=>clearTimeout(t); },[]);
   // 태깅 화면과 같은 자리(본문 위치 고정) — 버튼을 누르면 팔레트만 그 자리에 나타남
-  const TXW=Math.max(...w.lines.map(t=>[...t].length))*21+8, GX=Math.max(88,Math.round((1440-(TXW+146+paletteW(48,6)))/2)), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
+  const TXW=Math.max(...w.lines.map(t=>[...t].length))*21+8, GX=Math.max(40,Math.round((1440-(TXW+146+paletteW(48,6)))/2)), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
   const gaps=w.st.filter((s,i)=>i>0&&s!==w.st[i-1]).length; const sg=n>14?14:24; const rowH=Math.max(32,Math.min(52,Math.floor((900-208-36-gaps*sg)/n))); const fs=rowH<44?18:20;
   return <PFrame><TopNav go={go}/>
     <div style={{position:'absolute',left:GX,top:96,width:TXW+90}}>
@@ -85,7 +85,7 @@ function ReadTag({a, up, go}){
   const finish = () => up(s=>({tags:{...s.tags,[a.pk]:tg.tags},rep:{...s.rep,[a.pk]:rep},first:{...s.first,[a.pk]:(s.first||{})[a.pk]||tg.tags},rereads:s.tags[a.pk]?{...(s.rereads||{}),[a.pk]:[...((s.rereads||{})[a.pk]||[]),{tags:s.tags[a.pk],when:nowHM()}]}:s.rereads,hist:{...s.hist,[a.pk]:tg.hist},when:{...s.when,[a.pk]:TODAY},fresh:a.pk,prog:{...s.prog,[a.pk]:undefined},readInit:null,scr:'poem',justDone:true,drawer:null,cmpR:null}));
   const rc = hv||rep;
   // 시 본문 폭 = 가장 긴 행에 맞춤 → 색 칸이 행 바로 뒤, 팔레트도 그 옆으로
-  const TXW=Math.max(...w.lines.map(t=>[...t].length))*21+8, GX=Math.max(88,Math.round((1440-(TXW+146+paletteW(48,6)))/2)), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
+  const TXW=Math.max(...w.lines.map(t=>[...t].length))*21+8, GX=Math.max(40,Math.round((1440-(TXW+146+paletteW(48,6)))/2)), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
   // 마지막 행까지 고르면 '행을 눌러 고르세요' 단계 없이 바로 완료 화면으로
   React.useEffect(()=>{ if(phase==='lines' && tg.done && tg.cur==null && tg.flash==null){ const t=setTimeout(finish,350); return ()=>clearTimeout(t); } },[tg.done,tg.cur,tg.flash,phase]);
   const goSave = (scr,ex) => { up(s=>({prog:{...s.prog,[a.pk]:tg.tags}})); go(scr,ex); };

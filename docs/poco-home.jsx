@@ -54,6 +54,13 @@ const VW = {
   lj2:{key:'lj2',title:'의자',poet:'이정록',txtW:480,
     lines:['병원에 갈 채비를 하며','어머니께서','한 소식 던지신다','허리가 아프니까','세상이 다 의자로 보여야','꽃도 열매도, 그게 다','의자에 앉아 있는 것이여','주말엔','아버지 산소 좀 다녀와라','그래도 큰애 네가','아버지한테는 좋은 의자 아녔냐','이따가 침 맞고 와서는','참외밭에 지푸라기라도 깔고','호박에 똬리도 받쳐야겠다','그것들로 식군데 의자를 내줘야지','싸우지 말고 살아라','결혼하고 애 낳고 사는 게 별거냐','그늘 좋고 풍경 좋은 데다가','의자 몇 개 내놓는 거여'],
     st:[0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4],data:genData('lj2',19,['MO','LO','DO','MY','LY','SG','LG','MG','A2','A3','LR','SO']),rep:['MO','LY','MG','A2','LO']},
+  // 사용자 제공 이미지에서 옮긴 시 2편. 「헌화」는 손글씨 필사라 판독이 어려운 글자는 원문과 다를 수 있음. 독자 색은 시드 예시
+  br1:{key:'br1',title:'청춘의 기습',poet:'이병률',txtW:700,
+    lines:['그런 적 있을 것입니다','버스에서 누군가 귤 하나를 막 깠을 때','이내 사방이 가득 채워지고 마는','누군가에게라도 벅찬 아침은 있을 것입니다','열자마자 쏟아져서 마치 바닥에 부어놓은 것처럼','마음이라 부를 수 없는 것들이','이해할 수 없는 것들은 이해할 수 없는 것들이어서 버릴 수 없습니다','무언가를 잃었다면 주머니를 가졌기 때문입니다','인생을 계산하는 밤은 고역이에요','인생의 심줄은 몇몇의 추운 새벽으로 단단해집니다','넘어야겠다는 마음은 있습니까','저절로 익어 떨어뜨려야겠다는 질문이 하나쯤은 있습니까','돌아볼 것이 있을 것입니다','자신을 부리로 쪼아서 거침없이 하늘에 내던진 새가 어쩌면 전생의 자신이었습니다','누구나 미래를 빌릴 수는 없지만','과거를 갚을 수는 있을 것입니다'],
+    st:[0,0,0,1,1,1,2,3,3,3,4,4,5,5,6,6],data:genData('br1',16,['SO','LO','LY','MO','SY','LB','A2','DB','LP','WH','MY']),rep:['SO','LY','LO','LB','A2']},
+  gy1:{key:'gy1',title:'헌화',poet:'고영재',txtW:460,
+    lines:['꽃다발을 주는 것과 꽃 한 송이를 건네는 것은 다르다','헌화는 단 한 줄기로 모든 걸 말한다','그때 당신이 내 손을 꼭 잡았을 때','산 하나가 일어서고','강이 흐르고','하늘과 바다가 꽃구멍 속으로 밀려들어와','내 비강에서 향기로서 하나가 피었다','그러니 손을 모으고 눈을 감는 건','창처럼 꽃을 쥐고 서 있는 것은','온 힘을 다하여 말하는 최종결과일 뿐이다','찻잔에서 찻잎이 활짝 일어서듯','만났고','살았고','그게 그렇게 기뻤다','나를 줄 수 없어서 단 하나의 줄기를','당신 앞에 놓고 살아가는 것이다'],
+    st:Array(16).fill(0),data:genData('gy1',16,['WH','LR','LP','A3','LG','SG','MP','LY','A2','DR']),rep:['WH','LR','LP','A3','LG']},
 };
 Object.assign(WORKS, VW);
 // 오늘의 시(시연): 이수동 「사랑가」. 독자 4명 색은 실제 데이터가 아니라, 행 분위기별 후보 색에서 시드로 만든 예시
@@ -64,12 +71,12 @@ Object.assign(WORKS, VW);
     lines:['이 눈밭, 괜찮습니다.','나의 그대를 향한 사랑으로','충분히 녹일 수 있습니다.','혹여, 그것이 벅차다면','우리 보금자리라도 나의,','그대로 인한 신열(身熱)로','따뜻하게 데우겠습니다.','그리고 그대 닮은 산세베리아도','피우겠습니다.','장담하건대,','세상이 다 겨울이어도','우리 사랑은 늘 봄처럼 따뜻하고','간혹, 여름처럼 뜨거울 겁니다.','그대, 사랑합니다.'],
     st:Array(14).fill(0), data:P.map((p,i)=>N.map((_,r)=>p[Math.floor(mulberry32(hashStr('sar|'+r+'|'+i))()*p.length)])) }; WORKS.sar.rep=WORKS.sar.data[13].slice(); })();
 // [시연] 참여 인원(작품 목록 '참여 많은 순' 정렬용)
-Object.entries({hk1:2013,hk2:2013,hk3:2013,nt1:2015,lj1:2023,yc1:2020,ks1:2008,jh1:1997,jh2:1999,bs1:1938,bs2:1936,yd1:1936,nt2:2015,nt3:2013,gh2:1989,lj2:1999}).forEach(([k,y])=>WORKS[k].year=y); // 연도는 시연용(한강 3편은 시집 2013)
-Object.entries({cpd:142,jil:96,hk1:121,hk2:64,hk3:88,nt1:109,lj1:52,yc1:47,ks1:39,jh1:93,jh2:71,bs1:134,bs2:58,yd1:77,nt2:98,nt3:61,gh2:49,lj2:66}).forEach(([k,n])=>WORKS[k].readers=n);
-WORK_KEYS.splice(0, WORK_KEYS.length, 'sar','cpd','jil','hk1','hk3','hk2','nt1','jh1','jh2','lj1','yc1','ks1','bs1','bs2','yd1','nt2','nt3','gh2','lj2');
+Object.entries({hk1:2013,hk2:2013,hk3:2013,nt1:2015,lj1:2023,yc1:2020,ks1:2008,jh1:1997,jh2:1999,bs1:1938,bs2:1936,yd1:1936,nt2:2015,nt3:2013,gh2:1989,lj2:1999,br1:2017}).forEach(([k,y])=>WORKS[k].year=y); // 연도는 시연용(한강 3편은 시집 2013)
+Object.entries({cpd:142,jil:96,hk1:121,hk2:64,hk3:88,nt1:109,lj1:52,yc1:47,ks1:39,jh1:93,jh2:71,bs1:134,bs2:58,yd1:77,nt2:98,nt3:61,gh2:49,lj2:66,br1:45,gy1:33}).forEach(([k,n])=>WORKS[k].readers=n);
+WORK_KEYS.splice(0, WORK_KEYS.length, 'sar','cpd','jil','hk1','hk3','hk2','nt1','jh1','jh2','lj1','yc1','ks1','bs1','bs2','yd1','nt2','nt3','gh2','lj2','br1','gy1');
 // 실시간 베스트 순서(시연): 질투는 나의 힘 › 벚꽃의 꿈 › 네가 알 것만 같아 › 청포도 › 사랑가 › 어느 늦은 저녁 나는 › …  '시' 탭 참여 많은 순도 같은 순서
-const BEST_KEYS = ['jil','yc1','nt1','cpd','sar','hk1','bs1','hk3','nt2','hk2','jh1','yd1','jh2','lj2','nt3','bs2','lj1','gh2','ks1'];
-const BEST_TREND = ['up','down','same','up','down','up','up','same','up','up','down','same','up','down','up','same','same','down','down']; // 시연용 임의 상승·하강
+const BEST_KEYS = ['jil','yc1','nt1','cpd','sar','hk1','bs1','hk3','nt2','hk2','jh1','yd1','jh2','lj2','nt3','bs2','lj1','gh2','ks1','br1','gy1'];
+const BEST_TREND = ['up','down','same','up','down','up','up','same','up','up','down','same','up','down','up','same','same','down','down','up','up']; // 시연용 임의 상승·하강
 // 시인 랭킹: 시인별 읽은 독자 합계 순. 상승·하강은 시연용 임의
 const POET_TREND = [{k:'same',n:0},{k:'same',n:0},{k:'up',n:1},{k:'down',n:1},{k:'new'},{k:'up',n:4},{k:'down',n:2},{k:'up',n:1},{k:'new'},{k:'down',n:1},{k:'same',n:0},{k:'up',n:2}];
 const PHOTO_POETS = {'이수동':window.__resources['r_poet_2d_c774_c218_b3d9'],'기형도':window.__resources['r_poet_2d_ae30_d615_b3c4'],'백석':window.__resources['r_poet_2d_bc31_c11d'],'윤동주':window.__resources['r_poet_2d_c724_b3d9_c8fc'],'이육사':window.__resources['r_poet_2d_c774_c721_c0ac'],'한강':window.__resources['r_poet_2d_d55c_ac15'],'정호승':window.__resources['r_poet_2d_c815_d638_c2b9'],'나태주':window.__resources['r_poet_2d_b098_d0dc_c8fc'],'이정록':window.__resources['r_poet_2d_c774_c815_b85d'],'유응교':window.__resources['r_poet_2d_c720_c751_ad50'],'김승희':window.__resources['r_poet_2d_ae40_c2b9_d76c']};
