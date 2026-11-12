@@ -104,9 +104,9 @@ function PhBody({a, up, go, k}){
   const rowTop=i=>{ const el=rowRefs.current[i]; if(el) return el.offsetTop; let y=(showR||showAll)?40:0; for(let j=0;j<=i;j++){ if(j>0&&w.st[j]!==w.st[j-1]) y+=20; if(j<i) y+=52; } return y; };
   const seg=(key,l,on,fn,ic)=><div key={key} className="pk-hit" onClick={fn} style={{height:36,padding:'0 14px',display:'inline-flex',alignItems:'center',gap:8,font:`${on?700:400} 13px ${T.sans}`,background:on?T.band:T.surface,color:on?T.ink:T.ink2,whiteSpace:'nowrap'}}>{ic}{l}</div>;
   const switcher=<div style={{display:'flex',border:`1px solid ${T.line}`,borderRadius:18,overflow:'hidden'}}>
-    {seg('me','내 색',view==='me',()=>up({pv:'me',cmpR:null}))}
-    {seg('fr',`친구 ${FR.length}명의 색`,view==='friends',()=>up({pv:'friends',cmpR:null}))}
-    {seg('all',`전체 독자 ${N}명`,view==='all',()=>up({pv:'all',cmpR:null}),<span style={{display:'inline-flex',gap:1}}>{['SY','SO','SB','A1'].map(c=><span key={c} style={{width:5,height:12,background:PC[c][1]}}></span>)}</span>)}</div>;
+    {seg('me','내 색',view==='me',()=>up({pv:'me',cmpR:null,bub:null}))}
+    {seg('fr',`친구 ${FR.length}명의 색`,view==='friends',()=>up({pv:'friends',cmpR:null,bub:null}))}
+    {seg('all',`전체 독자 ${N}명`,view==='all',()=>up({pv:'all',cmpR:null,bub:null}),<span style={{display:'inline-flex',gap:1}}>{['SY','SO','SB','A1'].map(c=><span key={c} style={{width:5,height:12,background:PC[c][1]}}></span>)}</span>)}</div>;
   const bar=(i,segs)=><div style={{display:'flex',marginLeft:12,width:260,flex:'none',height:SQ,borderRadius:3,overflow:'hidden',gap:segs.length<=6?2:0}} onMouseLeave={()=>setHv(null)}>
     {segs.map((s,j)=><div key={j} onMouseEnter={()=>setHv({i,...s})} title={`${s.who} · ${pcLabel(s.c)||'비움'}`} style={{width:`${s.p*100}%`,background:ok(s.c)?PC[s.c][1]:'transparent',border:ok(s.c)?'none':`1px dashed ${T.disabled}`,boxSizing:'border-box',outline:hv&&hv.i===i&&hv.who===s.who?`2px solid ${T.ink}`:'none',outlineOffset:-2,opacity:hv&&hv.i===i&&hv.who!==s.who?.45:1,transition:'opacity .1s'}}></div>)}</div>;
   const hint=i=>hv&&hv.i===i && <span style={{position:'relative',width:0,marginLeft:-16,flex:'none',alignSelf:'stretch'}}><span style={{position:'absolute',left:-244,bottom:'calc(100% - 4px)',font:`500 12px ${T.sans}`,color:'#fff',background:T.ink,borderRadius:4,padding:'3px 8px',whiteSpace:'nowrap',pointerEvents:'none',zIndex:3}}>{hv.who} · {pcName(hv.c)||'비움'}</span></span>; /* 막대 위에 겹쳐 띄움: 행 폭이 바뀌지 않게 */
@@ -122,6 +122,7 @@ function PhBody({a, up, go, k}){
         {(showR||showAll) && <div style={{display:'flex',alignItems:'flex-end',gap:16,padding:'0 12px',height:40}}>
           <span style={{width:20}}></span><span style={{width:TW,flex:'none'}}></span>
           <div style={{width:SQ,display:'flex',justifyContent:'center'}}><span style={{font:`700 11px ${T.sans}`,color:T.ink}}>나</span></div>
+          {showR && <div style={{display:'flex',gap:4,marginLeft:12}}>{FR.map(({nm,r})=><div key={r} style={{width:SQ,flex:'none',display:'flex',justifyContent:'center'}}><span className={go?'pk-hit':undefined} onClick={go?()=>go('user',{who:nm}):undefined} title={go?`${nm} 프로필 보기`:nm} style={{font:`700 11px ${T.sans}`,color:T.ink,whiteSpace:'nowrap'}}>{nm}</span></div>)}</div>}
           </div>}
         {w.lines.map((t,i)=><React.Fragment key={i}><div className="pk-hit pk-row" onClick={()=>up({bub:bub&&bub.i===i&&bub.r===-1?null:{i,r:-1}})} title="누르면 이 색을 고른 이유를 남길 수 있어요" ref={el=>{ rowRefs.current[i]=el; }} style={{display:'flex',alignItems:'center',gap:16,minHeight:52,padding:'4px 12px',boxSizing:'border-box',borderRadius:4,marginTop:i>0&&w.st[i]!==w.st[i-1]?20:0,background:bub&&bub.i===i?T.band:undefined}}>
             <span style={{width:20,flex:'none',textAlign:'right',font:`400 11px ${T.sans}`,color:T.num}}>{i+1}</span>
