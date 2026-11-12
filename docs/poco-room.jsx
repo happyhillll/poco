@@ -79,7 +79,7 @@ function PhDoneModal({a, up, k}){
         <VBar colors={mine} st={w.st} w={72} h={h} sg={4} anim={dur}/>
         {a.rep[k] && <Sq c={a.rep[k]} w={72} h={36} r={0} title={`시 전체 대표색 · ${pcLabel(a.rep[k])}`} style={{animation:`pkIn .3s ${dur}ms both`}}/>}</div>
       <div style={{font:`400 15px ${T.sans}`,color:T.ink2,marginTop:24,textAlign:'center',animation:`pkIn .3s ${dur+100}ms both`}}>같은 시를 읽은 독자는 <b style={{color:T.ink}}>{w.readers||namesOf(w).length}</b>명이에요.<br/>이제 다른 독자의 색이 열려요.</div>
-      <PBtn onClick={()=>up({justDone:false})} style={{marginTop:28,width:'100%'}}>다른 독자의 색 보기</PBtn>
+      <PBtn onClick={()=>up({justDone:false,pv:'all',bub:null,cmpR:null})} style={{marginTop:28,width:'100%'}}>다른 독자의 색 보기</PBtn>
     </div></div>;
 }
 Object.assign(window,{PhLineDrawer,PhInlineCmp,PhDoneModal,PH_DRAWER_W,nowHM});
