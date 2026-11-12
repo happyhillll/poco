@@ -60,7 +60,7 @@ function Savor({a, go, onDone}){
   const [ready,setReady] = React.useState(false);
   React.useEffect(()=>{ const t=setTimeout(()=>setReady(true),4000); return ()=>clearTimeout(t); },[]);
   // 태깅 화면과 같은 자리(본문 위치 고정) — 버튼을 누르면 팔레트만 그 자리에 나타남
-  const {FZ,TXW,GX}=pocoReadFit(a,w), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
+  const {FZ,TXW,GX,SW,SG}=pocoReadFit(a,w), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
   const gaps=w.st.filter((s,i)=>i>0&&s!==w.st[i-1]).length; const sg=n>14?14:24; const rowH=Math.max(32,Math.min(52,Math.floor((900-208-36-gaps*sg)/n))); const fs=Math.round((rowH<44?18:20)*FZ);
   return <PFrame><TopNav go={go}/>
     <div style={{position:'absolute',left:GX,top:96,width:TXW+90}}>
@@ -88,7 +88,7 @@ function ReadTag({a, up, go}){
   React.useEffect(()=>{ if(tg.done) return; if(tg.count>0) up(s=>({prog:{...s.prog,[a.pk]:tg.tags}})); else up(s=>{ if(!(s.prog||{})[a.pk]) return {}; const P={...s.prog}; delete P[a.pk]; return {prog:P}; }); },[tg.tags]); // 되돌리기로 0행이 되면 진행 기록도 지움
   const rc = hv||rep;
   // 시 본문 폭 = 가장 긴 행에 맞춤 → 색 칸이 행 바로 뒤, 팔레트도 그 옆으로
-  const {FZ,TXW,GX}=pocoReadFit(a,w), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
+  const {FZ,TXW,GX,SW,SG}=pocoReadFit(a,w), PAL_X=GX+TXW+90+56; // 본문+팔레트 묶음을 가로 가운데로
   // 마지막 행까지 고르면 '행을 눌러 고르세요' 단계 없이 바로 완료 화면으로
   React.useEffect(()=>{ if(phase==='lines' && tg.done && tg.cur==null && tg.flash==null){ const t=setTimeout(finish,350); return ()=>clearTimeout(t); } },[tg.done,tg.cur,tg.flash,phase]);
   const goSave = (scr,ex) => { up(s=>({prog:{...s.prog,[a.pk]:tg.tags}})); go(scr,ex); };
@@ -102,9 +102,9 @@ function ReadTag({a, up, go}){
         <div style={{height:24}}></div>
         <PoemRows w={w} tags={tg.tags} cur={phase==='lines'?tg.cur:null} onRow={onRow} flash={tg.flash} nums={false} rowH={rowH} sg={sg} fs={fs} txtW={TXW}/>
       </div>; })()}
-    <div style={{position:'absolute',left:phase==='lines'?PAL_X:1440-48-paletteW(),top:phase==='lines'?127:112,width:phase==='lines'?paletteW(48,6):paletteW()}}>
-      {phase==='lines' ? <div style={{display:'flex',flexDirection:'column',alignItems:'center',width:paletteW(48,6)}}>
-        <div style={{opacity:tg.cur==null?.35:1,pointerEvents:tg.cur==null?'none':'auto',transition:'opacity .12s'}}><Palette sel={tg.tags[tg.cur]} onPick={tg.set} onHover={setHv} sw={48} gap={6} rowGap={10} cg={14}/></div>
+    <div style={{position:'absolute',left:phase==='lines'?PAL_X:1440-48-paletteW(),top:phase==='lines'?127:112,width:phase==='lines'?paletteW(SW,SG):paletteW()}}>
+      {phase==='lines' ? <div style={{display:'flex',flexDirection:'column',alignItems:'center',width:paletteW(SW,SG)}}>
+        <div style={{opacity:tg.cur==null?.35:1,pointerEvents:tg.cur==null?'none':'auto',transition:'opacity .12s'}}><Palette sel={tg.tags[tg.cur]} onPick={tg.set} onHover={setHv} sw={SW} gap={SG} rowGap={10} cg={14}/></div>
         <div style={{whiteSpace:'nowrap',alignSelf:'flex-start',font:`400 12px ${T.sans}`,color:T.caption,marginTop:12}}>BCP-37 (Palmer et al. 2025)</div>
         <div style={{font:`700 20px ${T.sans}`,color:T.ink,marginTop:40}}>어떤 색이 떠오르나요?</div>
         {tg.cur!=null && <div style={{display:'flex',gap:8,marginTop:20}}>
@@ -133,9 +133,17 @@ function ReadTag({a, up, go}){
 // 설정 '본문 글자 크기' → 읽기 화면 글자 배율
 const pocoFontScale = a => ({'작게':.9,'기본':1,'크게':1.12})[((a&&a.settings)||{}).font||'기본']||1;
 // 읽기·태깅 배치: 본문+팔레트 묶음이 왼쪽 여백 40과 오른쪽 진행 표시 열(1352부터) 사이에 들어가게. 긴 시는 글자를 줄여 맞춤
-const pocoReadFit = (a,w) => { const base=Math.max(...w.lines.map(t=>[...t].length))*21+8, pw=paletteW(48,6), RIGHT=1440-48-44, L=40;
-  const maxTX=RIGHT-L-146-pw; const FZ=Math.min(pocoFontScale(a), maxTX/base); const TXW=Math.round(base*FZ);
-  const GX=Math.max(L,Math.min(Math.round((1440-(TXW+146+pw))/2), RIGHT-(TXW+146+pw))); return {FZ,TXW,GX}; };
+// 본문 글자를 줄이지 않는 한에서 가장 큰 팔레트 칸(48px부터 36px까지). 긴 시는 팔레트를 줄여 본문 크기를 지킴
+const POCO_READ_SW = [[48,6],[46,6],[44,6],[42,5],[40,5],[38,4],[36,4]];
+// 본문 폭: 글꼴이 준비됐으면 실제 글자 폭(20px 기준 + 자간 .02em, 3% 여유)을 재고, 아니면 글자 수×21px로 넉넉히
+const POCO_MEASURE = (()=>{ let ctx=null; const memo={}; return lines => { const key=lines.join('\n'); if(memo[key]) return memo[key];
+  try{ if(!document.fonts||!document.fonts.check("20px 'Noto Serif KR'")) return null; ctx=ctx||document.createElement('canvas').getContext('2d'); ctx.font="400 20px 'Noto Serif KR'";
+    return memo[key]=Math.ceil(Math.max(...lines.map(t=>ctx.measureText(t).width+[...t].length*0.4))*1.03)+8; }catch(e){ return null; } }; })();
+const pocoReadFit = (a,w) => { const base=POCO_MEASURE(w.lines)||Math.max(...w.lines.map(t=>[...t].length))*21+8, RIGHT=1440-48-44, L=40, fs=pocoFontScale(a);
+  const fits = ([s,g]) => RIGHT-L-146-paletteW(s,g) >= base*fs;
+  const [SW,SG] = POCO_READ_SW.find(fits) || POCO_READ_SW[POCO_READ_SW.length-1]; const pw=paletteW(SW,SG);
+  const maxTX=RIGHT-L-146-pw; const FZ=Math.min(fs, maxTX/base); const TXW=Math.round(base*FZ);
+  const GX=Math.max(L,Math.min(Math.round((1440-(TXW+146+pw))/2), RIGHT-(TXW+146+pw))); return {FZ,TXW,GX,SW,SG}; };
 // 이유 한 줄(선택): 고른 행 바로 아래, 입력 1칸 · Enter로 저장 · 다시 누르면 고치기. 바코드 나란히 보기의 '내가 이 색을 고른 이유'와 같은 기록
 function PhReason({a, up, k, i, onColor, pal}){
   const key=k+'|'+i+'|me'; const saved=((a.why||{})[key]||{}).t||'';

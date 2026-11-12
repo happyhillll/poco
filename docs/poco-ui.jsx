@@ -27,7 +27,7 @@ const Wordmark = ({size=22, reverse}) => <img src={reverse?window.__resources['r
 // 색 칸. c: 좌표 | 'SKIP' | undefined(아직)
 function Sq({c, w=30, h, r=3, style, title, onClick, cls}){
   h = h||w; let b;
-  if(c===undefined) b={border:`1.5px dotted ${T.disabled}`};
+  if(c==null || (c!=='SKIP' && !PC[c])) b={border:`1.5px dotted ${T.disabled}`}; // 아직(undefined·null)이나 모르는 코드는 빈 칸
   else if(c==='SKIP') b={border:`1.5px dotted ${T.caption}`};
   else if(c==='T1') b={border:`1.5px dashed ${T.caption}`};
   else if(c==='WH') b={background:'#fff',boxShadow:`inset 0 0 0 1px ${T.disabled}`};

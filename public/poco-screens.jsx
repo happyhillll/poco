@@ -262,7 +262,7 @@ const POCO_TRANSIENT=['authed','scr','step','back','convo','toast','drawer','bub
 function pocoSave(a){ try{ const o={}; Object.keys(a).forEach(k=>{ if(!POCO_TRANSIENT.includes(k)) o[k]=a[k]; }); localStorage.setItem(POCO_KEY,JSON.stringify(o)); if(window.PocoAPI&&a.authed) PocoAPI.save(o); }catch(e){} }
 // 앱(계정 로그인)의 시작 상태: 읽은 시 없는 빈 서재. 시연용 PH_INIT은 캔버스 프레임에서만 사용
 // sessionStorage 'poco.next': 로그인 직후 이어갈 화면. 예전 형식(화면 이름 문자열)도 읽음
-function pocoNext(){ const v=sessionStorage.getItem('poco.next'); sessionStorage.removeItem('poco.next'); if(!v) return null; try{ const o=JSON.parse(v); if(o&&o.scr) return {scr:o.scr,ex:o.ex||{}}; }catch(e){} return {scr:v,ex:{}}; }
+function pocoNext(){ const v=sessionStorage.getItem('poco.next'); sessionStorage.removeItem('poco.next'); if(!v) return null; try{ const o=JSON.parse(v); if(o&&o.scr){ const ex={...(o.ex||{})}; delete ex.readInit; return {scr:o.scr,ex}; } }catch(e){} return {scr:v,ex:{}}; }
 const PH_BLANK={tags:{},rep:{},first:{},hist:{},prog:{},when:{},fresh:null,fav:[],following:[],followers:[]};
 function pocoLoad(){ try{ const o=JSON.parse(localStorage.getItem(POCO_KEY)||'null'); if(!o||typeof o!=='object') return null; POCO_TRANSIENT.forEach(k=>delete o[k]); if(o.prog) Object.keys(o.prog).forEach(k=>{ o.prog[k]=Array.isArray(o.prog[k])?o.prog[k].map(x=>x===null?undefined:x):undefined; }); return o; }catch(e){ return null; } }
 // 화면 하나에서 오류가 나도 앱 전체가 하얗게 멈추지 않게: 안내와 '홈으로'만 보여 줌
@@ -288,7 +288,7 @@ function PocoApp({init}){
     const next0 = !init && authed0 ? pocoNext() : null; // 로그인 직후 가려던 화면 {scr, ex}
     return {authed:authed0,scr:next0?'home':(localStorage.getItem('poco.onboarded')?'home':'onb'),pendingNext:next0,step:0,pk:'cpd',...JSON.parse(JSON.stringify(INIT0)),why:myWhy,convo:null,readInit:null,reacts:JSON.parse(JSON.stringify(REACTS0)),...(saved||{}),...(init||{})}; });
   React.useEffect(()=>{ if(!init) pocoSave(a); },[a]);
-  React.useEffect(()=>{ const n=a.pendingNext; if(n){ up({pendingNext:null,back:[]}); if(n.scr!=='home') go(n.scr,n.ex||{}); } },[]); // 로그인 직후: 가려던 화면(시 pk 등 포함)으로
+  React.useEffect(()=>{ const n=a.pendingNext; if(n){ up({pendingNext:null,back:[]}); if(n.scr!=='home') go(n.scr, n.scr==='read'&&n.ex&&n.ex.pk&&WORKS[n.ex.pk] ? {...n.ex,readInit:contInit(a,n.ex.pk)} : (n.ex||{})); } },[]); // 로그인 직후: 가려던 화면(시 pk 등 포함)으로
   // 로그아웃 상태에서 내 기록(찜·반응·팔로우 등)을 바꾸려 하면 바꾸지 않고 로그인으로(로그인 뒤 이 시로 돌아옴)
   const up = p => setA(s=>{ const d=(typeof p==='function'?p(s):p)||{};
     if(!init && !s.authed && !d.authed && POCO_REC.some(k=>k in d && d[k]!==s[k]))
