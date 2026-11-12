@@ -279,6 +279,12 @@ function PhFind({a, up, go}){
 // ───────── 06 비슷한 색 조합 구절 찾기 (F7) ─────────
 function PhSim({a, up, go}){
   const done = WORK_KEYS.filter(k=>a.tags[k]); const sl=a.sl&&a.tags[a.sl.pk]?a.sl:{pk:done[0],i:0};
+  // 다 읽은 시가 아직 없으면(새 계정) 안내만
+  if(!done.length) return <PFrame><TopNav go={go} active="find" />
+    <div style={{position:'absolute',left:104,top:104,width:600}}>
+      <div style={{font:`700 30px ${T.serif}`,color:T.ink}}>비슷한 색 조합 찾기</div>
+      <div style={{font:`400 15px/1.6 ${T.sans}`,color:T.ink2,marginTop:10}}>시를 한 편 끝까지 읽고 나면, 그 시의 행과 비슷한 색 조합으로 읽힌 다른 시의 행을 찾을 수 있어요.</div>
+      <PBtn onClick={()=>go('list')} style={{marginTop:28}}>시 고르러 가기</PBtn></div></PFrame>;
   const w=WORKS[sl.pk], base=lineColors(a,sl.pk,sl.i);
   const res=[]; done.filter(k=>k!==sl.pk).forEach(k=>WORKS[k].lines.forEach((t,i)=>res.push({k,i,t,d:comboDist(base,lineColors(a,k,i))})));
   res.sort((x,y)=>x.d-y.d);

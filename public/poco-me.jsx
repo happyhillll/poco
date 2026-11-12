@@ -3,6 +3,8 @@ const HUE_FAM = [['R','빨강'],['O','주황'],['Y','노랑'],['H','연두'],['G
 const famOf = c => !c||c==='T1'||c==='SKIP' ? null : /^[SLMD][ROYHGCBP]$/.test(c) ? c[1] : 'N';
 const famHex = f => f==='N' ? PC.A2[1] : PC['S'+f][1];
 const famIdx = c => { const f=famOf(c); if(!f) return 99; const hue=HUE_FAM.findIndex(([x])=>x===f); const tone={S:0,L:1,M:2,D:3}[c[0]]??4; return hue*10+tone; };
+// 로그아웃: 앱은 서버 세션을 끝내고 이 브라우저의 기록 사본을 지운 뒤 새로 시작. 캔버스(시연)는 화면만 전환
+const pocoLogout = (up,go) => { if(window.PocoAPI) return PocoAPI.logout(); localStorage.removeItem('poco.authed'); up({authed:false}); go('login',{mode:'login'}); };
 function PhMe({a, up, go}){
   const done = WORK_KEYS.filter(k=>a.tags[k]); const reading = WORK_KEYS.filter(k=>workState(a,k)==='reading');
   const all = done.flatMap(k=>a.tags[k]).filter(c=>c&&PC[c]&&PC[c][1]);
@@ -15,7 +17,7 @@ function PhMe({a, up, go}){
   const [order,setOrder] = React.useState('poem'); // 색 띠: 시 순서 / 색 순서
   const [confirm,setConfirm] = React.useState(false);
   const [toast,setToast] = React.useState(null); const say = t => { setToast(t); setTimeout(()=>setToast(null),1600); };
-  const logout = () => { localStorage.removeItem('poco.authed'); up({authed:false}); go('login',{mode:'login'}); };
+  const logout = () => pocoLogout(up,go);
   const byDay = {}; done.forEach(k=>{ const m=/(\d+)일/.exec(a.when[k]||TODAY); if(m) (byDay[+m[1]]=byDay[+m[1]]||[]).push(k); });
   const first = new Date(2026,9,1).getDay(), days = 31;
   const hist = done.map(k=>({k,h:(a.hist&&a.hist[k])||[]})).filter(x=>x.h.length);
@@ -33,7 +35,7 @@ function PhMe({a, up, go}){
      <div style={{maxWidth:1040,margin:'0 auto',padding:'40px 48px 96px'}}>
       {/* 프로필 */}
       <div style={{display:'flex',alignItems:'center',gap:32}}>
-        <div style={{width:112,height:112,borderRadius:'50%',background:T.ink,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',font:`500 36px ${T.sans}`,flex:'none',whiteSpace:'nowrap'}}>민지</div>
+        <div style={{width:112,height:112,borderRadius:'50%',background:T.ink,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',font:`500 36px ${T.sans}`,flex:'none',whiteSpace:'nowrap'}}>{ME_INI}</div>
         <div style={{flex:1,minWidth:0}}>
           <div style={{font:`700 32px ${T.sans}`,color:T.ink}}>{ME}</div>
           <div style={{font:`400 14px ${T.sans}`,color:T.ink2,marginTop:6}}>{TODAY} 기준 · 10월에 {Object.keys(byDay).length}일 읽었어요</div>
@@ -133,7 +135,7 @@ function PhMe({a, up, go}){
           {!confirm ? <span className="pk-link" onClick={()=>setConfirm(true)} style={{font:`400 14px ${T.sans}`,color:T.caption,height:44,display:'inline-flex',alignItems:'center'}}>계정 삭제</span>
             : <div style={{display:'flex',alignItems:'center',gap:14,font:`400 14px ${T.sans}`,color:T.ink}}>바코드 {done.length}개와 반응 {myReacts.length}개가 함께 지워져요. 되돌릴 수 없어요.
                 <PBtn kind="secondary" h={40} onClick={()=>setConfirm(false)}>취소</PBtn>
-                <PBtn h={40} onClick={()=>{ localStorage.removeItem('poco.authed'); localStorage.removeItem('poco.onboarded'); say('계정을 삭제했어요 (시연)'); setTimeout(()=>{ up({authed:false}); go('onb',{step:0}); },900); }}>삭제</PBtn></div>}
+                <PBtn h={40} onClick={()=>{ if(window.PocoAPI){ PocoAPI.deleteAccount().then(r=>{ if(r&&!r.ok) say(PocoAPI.errText(r.error)); }); return; } localStorage.removeItem('poco.authed'); localStorage.removeItem('poco.onboarded'); say('계정을 삭제했어요 (시연)'); setTimeout(()=>{ up({authed:false}); go('onb',{step:0}); },900); }}>삭제</PBtn></div>}
         </div>
       </Sec>
      </div>
@@ -253,9 +255,9 @@ function PhSettings({a, up, go}){
       <H t="내 기록"/>
       <Row t="행별 색 기록 내보내기 (CSV)" sub="다 읽은 시와 읽는 중인 시의 행마다 고른 색 코드·HEX(sRGB)를 한 파일로 받아요." right={<PBtn kind="secondary" h={40} onClick={()=>{ pocoExportCSV(a); say('CSV 파일을 내려받았어요'); }}>내보내기</PBtn>}/>
       <H t="계정"/>
-      <Row t={ME} sub="night@poco.kr" right={<PBtn kind="secondary" h={40} onClick={()=>go('me')}>프로필 보기</PBtn>}/>
+      <Row t={ME} sub={window.PocoAPI?"아이디로 로그인 중":"night@poco.kr"} right={<PBtn kind="secondary" h={40} onClick={()=>go('me')}>프로필 보기</PBtn>}/>
       <Row t="의견 보내기" sub="불편한 점이나 바라는 점을 알려 주세요." right={<PBtn kind="secondary" h={40} onClick={()=>say('의견 창은 시연에서 열리지 않아요')}>쓰기</PBtn>}/>
-      <Row t="로그아웃" right={<span className="pk-link" onClick={()=>{ localStorage.removeItem('poco.authed'); up({authed:false}); go('login',{mode:'login'}); }} style={{font:`400 14px ${T.sans}`,height:44,display:'inline-flex',alignItems:'center'}}>로그아웃</span>}/>
+      <Row t="로그아웃" right={<span className="pk-link" onClick={()=>pocoLogout(up,go)} style={{font:`400 14px ${T.sans}`,height:44,display:'inline-flex',alignItems:'center'}}>로그아웃</span>}/>
       <Row t="계정 삭제" sub="바코드와 반응이 모두 지워지고 되돌릴 수 없어요." right={<span className="pk-link" onClick={()=>go('me')} style={{font:`400 14px ${T.sans}`,color:T.caption,height:44,display:'inline-flex',alignItems:'center'}}>프로필에서 진행</span>}/>
      </div>
     </div>

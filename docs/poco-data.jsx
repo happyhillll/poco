@@ -16,7 +16,8 @@ const pcName = c => c==='SKIP' ? '건너뜀' : c && PC[c] ? PC[c][0] : '';
 const pcLabel = c => c==='SKIP' ? '건너뜀' : c && PC[c] ? `${c} · ${PC[c][0]}` : '';
 
 const NICK = ['남형석','조은','김려원','김한결','이은수']; // 시연 독자(실명 5인)
-const ME = '김민지';
+const ME = window.PocoAPI ? (PocoAPI.user()||'나') : '김민지'; // 앱: 로그인한 아이디. 캔버스(시연 프레임): 시연용 이름
+const ME_INI = ME==='김민지' ? '민지' : [...ME].slice(0,2).join(''); // 프로필 동그라미 글자
 const TODAY = '10월 19일';
 
 // [시연] 가상 작품(poco-home.jsx) 독자 태깅값 시드 생성. 백석·정호승 등 저작권 보호 작품은 시연에서 제외
@@ -75,4 +76,4 @@ const PILOT_R = ['남형석','김한결','김려원','조은','김민지'];
 MY.cpd.tags=WORKS.cpd.pilotMe.slice(); MY.cpd.first=WORKS.cpd.pilotMe.slice(); MY.jil.tags=WORKS.jil.pilotMe.slice();
 (()=>{ const m={'모과':'남형석','종이배':'김한결','새벽세시':'김려원','여름비':'조은','느린산책':'김민지'}; ['cpd','jil'].forEach(k=>Object.values(REACTS0[k]).forEach(L=>L.forEach(r=>{ if(m[r.n]) r.n=m[r.n]; }))); })();
 const namesOf = w => w.names || NICK;
-Object.assign(window,{withMyWhy,PILOT_R,namesOf,PC,PC_TOP,PC_GRID,PC_ORDER,pcName,pcLabel,NICK,ME,TODAY,WORKS,WORK_KEYS,MY,REACTS0,REACT_MAX,PL});
+Object.assign(window,{withMyWhy,PILOT_R,namesOf,PC,PC_TOP,PC_GRID,PC_ORDER,pcName,pcLabel,NICK,ME,ME_INI,TODAY,WORKS,WORK_KEYS,MY,REACTS0,REACT_MAX,PL});

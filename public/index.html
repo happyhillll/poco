@@ -27,12 +27,14 @@
 <meta name="ext-resource-dependency" content="assets/login-line.png" data-resource-id="r_login_line" />
 <meta name="ext-resource-dependency" content="assets/login-x.png" data-resource-id="r_login_x" />
 <script>/* local-run shim: Claude Design builds window.__resources from these meta tags; rebuild it here */window.__resources={};document.querySelectorAll('meta[name="ext-resource-dependency"]').forEach(function(m){window.__resources[m.getAttribute("data-resource-id")]=m.getAttribute("content");});</script>
-<title>Poco · 시연 프로토타입</title>
+<title>Poco</title>
 <link href="vendor/fonts/fonts.css" rel="stylesheet">
 <style>html,body{margin:0;height:100%;background:#E4E1D6;overflow:hidden}a{color:#2B2B2B}a:hover{color:#5E5E5E}#stage{position:absolute;left:0;top:0;width:1440px;height:900px;transform-origin:0 0}</style>
 <script src="vendor/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="vendor/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="vendor/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="poco-config.js"></script>
+<script src="poco-api.js"></script>
 </head><body><div id="stage"></div>
 <script type="text/babel" src="shared.jsx"></script>
 <script type="text/babel" src="poco-data.jsx"></script>
@@ -57,6 +59,7 @@ const fit = () => { const s = Math.min(innerWidth/1440, innerHeight/900), w = in
   st.style.width = w+'px'; st.style.height = h+'px'; st.style.setProperty('--pw', w+'px'); st.style.setProperty('--ph', h+'px');
   st.style.transform = `scale(${s})`; };
 fit(); addEventListener('resize', fit);
-const start = location.hash.slice(1); // 예: #home 으로 열면 온보딩을 건너뜀
-ReactDOM.createRoot(st).render(<PocoApp init={start?{scr:start}:undefined}/>);
+// 주소에 #onb 를 붙이면 온보딩을 다시 봄. 로그인 상태면 서버에 저장된 내 기록을 먼저 내려받고 시작
+if(location.hash==='#onb') localStorage.removeItem('poco.onboarded');
+PocoAPI.boot().then(()=>ReactDOM.createRoot(st).render(<PocoApp/>));
 </script></body></html>
