@@ -276,6 +276,8 @@ class PocoBoundary extends React.Component{
       <div style={{font:`400 15px ${T.sans}`,color:T.ink2,margin:'10px 0 28px'}}>기록은 그대로 있어요. 홈에서 다시 시작해 주세요.</div>
       <PBtn onClick={()=>this.props.go('home')}>홈으로</PBtn></div></PFrame>; }
 }
+const POCO_REC=['tags','prog','rep','first','hist','when','fresh','fav','following','followers','why','reacts','requests'];
+const POCO_OPEN=['login','onb','__back','home','list','poets','find','text','poem','help'];
 function PocoApp({init}){
   // 로그인: 캔버스 프레임(init 있음)은 로그인 상태, 로그인 화면은 로그아웃. 프로토타입은 localStorage 'poco.authed'
   const authed0 = init&&init.authed!=null ? init.authed : init&&(init.scr==='login'||init.scr==='onb') ? false : init ? true : localStorage.getItem('poco.authed')==='1';
@@ -287,12 +289,17 @@ function PocoApp({init}){
     return {authed:authed0,scr:next0?'home':(localStorage.getItem('poco.onboarded')?'home':'onb'),pendingNext:next0,step:0,pk:'cpd',...JSON.parse(JSON.stringify(INIT0)),why:myWhy,convo:null,readInit:null,reacts:JSON.parse(JSON.stringify(REACTS0)),...(saved||{}),...(init||{})}; });
   React.useEffect(()=>{ if(!init) pocoSave(a); },[a]);
   React.useEffect(()=>{ const n=a.pendingNext; if(n){ up({pendingNext:null,back:[]}); if(n.scr!=='home') go(n.scr,n.ex||{}); } },[]); // 로그인 직후: 가려던 화면(시 pk 등 포함)으로
-  const up = p => setA(s=>({...s,...(typeof p==='function'?p(s):p)}));
+  // 로그아웃 상태에서 내 기록(찜·반응·팔로우 등)을 바꾸려 하면 바꾸지 않고 로그인으로(로그인 뒤 이 시로 돌아옴)
+  const up = p => setA(s=>{ const d=(typeof p==='function'?p(s):p)||{};
+    if(!init && !s.authed && !d.authed && POCO_REC.some(k=>k in d && d[k]!==s[k]))
+      return {...s,back:[...(s.back||[]),{scr:s.scr,pk:s.pk,poet:s.poet}].slice(-30),scr:'login',mode:'login',next:s.scr,nextEx:{pk:s.pk,poet:s.poet},convo:null,drawer:null,bub:null};
+    return {...s,...d}; });
   // 뒤로가기: 화면 이동마다 직전 위치를 쌓고, '__back'이면 하나 꺼냄(없으면 홈)
   // 시 한 편에 딸린 화면은 모두 시 화면(poem) 안의 상태로: 페이지 이동 없이 서랍·제자리 비교·모달
   const AL={bar:()=>({}),space:e=>e.tab==='dist'?{drawer:0}:{},cmp:e=>({cmpR:e.cr==null?0:e.cr}),work:()=>({}),re:()=>({drawer:0}),done:()=>({justDone:true})};
   const go = (scr0, ex0={}) => { let scr=scr0, extra=ex0;
-    if(!a.authed && !ex0.authed && !['login','onb','__back'].includes(scr0)) return go0('login',{mode:'login',next:scr0,nextEx:ex0});
+    // 로그아웃 상태: 둘러보기 화면(시·시인·찾기·시 상세·도움말)은 열고, 내 기록이 필요한 화면(읽기·서재·마이페이지 등)만 로그인으로
+    if(!a.authed && !ex0.authed && (!POCO_OPEN.includes(scr0) || ex0.fmode==='sim')) return go0('login',{mode:'login',next:scr0,nextEx:ex0});
     if(AL[scr0]){ scr='poem'; extra={...ex0,...AL[scr0](ex0)}; }
     if(scr0==='sim'){ scr='find'; extra={...ex0,fmode:'sim'}; }
     if(scr==='poem') extra={drawer:null,bub:null,cmpR:null,pv:'me',justDone:false,...extra};

@@ -255,7 +255,7 @@ function PhFind({a, up, go}){
           <div style={{font:`400 13px/1.7 ${T.sans}`,color:T.caption,marginTop:10}}>그 색으로 읽힌 행, 그 색이 많이 나온 시, 같은 행에서 함께 고른 색까지 한 번에 볼 수 있어요.</div></div>}
         {c && res.length===0 && <div style={{padding:'24px 0'}}>
           <div style={{font:`400 15px ${T.sans}`,color:T.ink}}>이 색으로 고른 행이 아직 없어요.</div>
-          <div style={{font:`400 14px ${T.sans}`,color:T.ink2,marginTop:8}}>{mode==='mine'?(Object.keys(a.tags||{}).length?'‘전체’로 바꾸거나, ':'아직 다 읽은 시가 없어요. 시를 끝까지 읽고 색을 고르면 여기에 나와요. ‘전체’로 바꾸거나, '):''}다른 색으로 찾아보세요.</div></div>}
+          <div style={{font:`400 14px ${T.sans}`,color:T.ink2,marginTop:8}}>{!a.authed?'로그인하고 시를 끝까지 읽으면, 그 시에서 나와 다른 독자가 고른 색을 여기서 찾을 수 있어요. ':mode==='mine'?(Object.keys(a.tags||{}).length?'‘전체’로 바꾸거나, ':'아직 다 읽은 시가 없어요. 시를 끝까지 읽고 색을 고르면 여기에 나와요. ‘전체’로 바꾸거나, '):''}다른 색으로 찾아보세요.</div></div>}
         {groups.map(g=><div key={g.k+g.rows[0].i} >
           {grp && <div className="pk-hit" onClick={()=>go('poem',{pk:g.k})} style={{display:'flex',alignItems:'baseline',gap:10,height:40,padding:'0 12px',marginTop:16,background:T.band,borderRadius:4}}>
             <span style={{font:`700 15px ${T.serif}`,color:T.ink,whiteSpace:'nowrap'}}>{WORKS[g.k].title}</span>

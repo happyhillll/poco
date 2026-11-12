@@ -193,7 +193,7 @@ function PhRequest({a, up}){
 function PhShelf({a, ks, go, w=52, h=250, gap=6}){
   return <div style={{display:'inline-flex',flexDirection:'column'}}>
     <style>{`.ph-spine{transition:transform .12s}.ph-spine:hover{transform:translateY(-8px)}`}</style>
-    {!ks.length && <div style={{font:`400 14px ${T.sans}`,color:T.caption,padding:'0 14px 12px'}}>아직 담긴 시가 없어요. 시를 끝까지 읽고 색을 고르면 이 서재에 꽂혀요.</div>}
+    {!ks.length && <div style={{font:`400 14px ${T.sans}`,color:T.caption,padding:'0 14px 12px'}}>{a.authed?'아직 담긴 시가 없어요. 시를 끝까지 읽고 색을 고르면 이 서재에 꽂혀요.':'로그인하면 내가 읽은 시가 이 서재에 꽂혀요.'}</div>}
     <div style={{display:'flex',alignItems:'flex-end',gap,padding:'0 14px'}}>{ks.map(k=><PhSpine key={k} a={a} k={k} go={go} w={w} h={h}/>)}</div>
     <div style={{height:10,background:'linear-gradient(#CFC8B8,#B9B19F)',borderRadius:2,boxShadow:'0 3px 6px rgba(0,0,0,.12)'}}></div></div>;
 }
