@@ -102,7 +102,7 @@ function ReadTag({a, up, go}){
         <div style={{height:24}}></div>
         <PoemRows w={w} tags={tg.tags} cur={phase==='lines'?tg.cur:null} onRow={onRow} flash={tg.flash} nums={false} rowH={rowH} sg={sg} fs={fs} txtW={TXW}/>
       </div>; })()}
-    <div style={{position:'absolute',left:phase==='lines'?PAL_X:1040,top:phase==='lines'?127:112,width:phase==='lines'?paletteW(48,6):352}}>
+    <div style={{position:'absolute',left:phase==='lines'?PAL_X:1440-48-paletteW(),top:phase==='lines'?127:112,width:phase==='lines'?paletteW(48,6):paletteW()}}>
       {phase==='lines' ? <div style={{display:'flex',flexDirection:'column',alignItems:'center',width:paletteW(48,6)}}>
         <div style={{opacity:tg.cur==null?.35:1,pointerEvents:tg.cur==null?'none':'auto',transition:'opacity .12s'}}><Palette sel={tg.tags[tg.cur]} onPick={tg.set} onHover={setHv} sw={48} gap={6} rowGap={10} cg={14}/></div>
         <div style={{whiteSpace:'nowrap',alignSelf:'flex-start',font:`400 12px ${T.sans}`,color:T.caption,marginTop:12}}>BCP-37 (Palmer et al. 2025)</div>
@@ -212,7 +212,7 @@ function MobileRead({pk='cpd', init}){
             <div style={{width:18,textAlign:'right',font:`400 11px ${T.sans}`,color:T.num,flex:'none'}}>{i+1}</div>
             <div style={{flex:1,font:`400 16px/1.6 ${T.serif}`,color:T.ink,wordBreak:'keep-all'}}>{t}</div>
             <Sq c={tg.tags[i]} w={28} style={{animation:tg.flash===i?'pkFill .14s both':'none'}}/></div>
-          {isCur && <TagPanel key={'p'+i} tg={tg} indent={8} compact/>}
+          {isCur && <TagPanel key={'p'+i} tg={tg} indent={8} sw={38} gap={4} compact/>}
         </React.Fragment>; })}
       </div> : <div style={{padding:'24px 24px'}}>
         <div style={{font:`500 17px ${T.sans}`,marginBottom:16}}>시 전체를 한 색으로 고른다면?</div>

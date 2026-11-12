@@ -218,8 +218,8 @@ function PhFind({a, up, go}){
   const groups=[]; res.forEach(r=>{ const g=groups[groups.length-1]; if(grp && g && g.k===r.k) g.rows.push(r); else groups.push({k:r.k,rows:[r]}); });
   const topPoems=Object.entries(perPoem).sort((x,y)=>y[1]-x[1]).slice(0,3), maxPoem=topPoems[0]?topPoems[0][1]:1;
   const coTop=Object.entries(co).sort((x,y)=>y[1]-x[1]).slice(0,5).map(x=>x[0]);
-  const row = c && PC_GRID.indexOf(c)>=0 ? Math.floor(PC_GRID.indexOf(c)/6) : -1;
-  const near = row>=0 ? [...new Set(PC_GRID.slice(row*6,row*6+6))].filter(x=>x!==c) : ['BK','A1','A2','A3','WH'].filter(x=>x!==c);
+  const row = c && PC_GRID.indexOf(c)>=0 ? Math.floor(PC_GRID.indexOf(c)/PC_COLS) : -1;
+  const near = row>=0 ? [...new Set(PC_GRID.slice(row*PC_COLS,row*PC_COLS+PC_COLS))].filter(x=>x!==c) : ['BK','A1','A2','A3','WH'].filter(x=>x!==c);
   const chips = xs => <div style={{display:'flex',gap:8,marginTop:8}}>{xs.map(x=><div key={x} className="pk-hit pk-chip" onClick={()=>up({fc:x})}><Sq c={x} w={36} r={4} title={pcLabel(x)}/></div>)}</div>;
   const lbl = t => <div style={{font:`500 12px ${T.sans}`,color:T.caption,marginTop:18}}>{t}</div>;
   const openRow = r => go('poem',{pk:r.k});
@@ -228,7 +228,7 @@ function PhFind({a, up, go}){
       <div style={{display:'flex',alignItems:'baseline'}}><div style={{font:`700 30px ${T.serif}`,color:T.ink}}>색으로 찾기</div><div style={{flex:1}}></div>
         <span className="pk-link" onClick={()=>up({fc:PC_GRID[Math.floor(Math.random()*PC_GRID.length)]})} style={{font:`400 13px ${T.sans}`,height:44,display:'inline-flex',alignItems:'center'}}>아무 색이나</span></div>
       <div style={{font:`400 15px ${T.sans}`,color:T.ink2,marginTop:10}}></div>
-      <div style={{marginTop:64}}><Palette sel={c} onPick={x=>up({fc:x})}/></div>
+      <div style={{marginTop:64}}><Palette sel={c} onPick={x=>up({fc:x})} sw={38} gap={5}/></div>
       {c && <div style={{marginTop:24,paddingTop:18,borderTop:`1px solid ${T.line}`,animation:'pkIn .12s both'}}>
         <div style={{display:'flex',alignItems:'center',gap:12}}><Sq c={c} w={40} r={4}/>
           <div><div style={{font:`700 18px ${T.sans}`,color:T.ink}}>{pcLabel(c)}</div>

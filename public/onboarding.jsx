@@ -31,12 +31,12 @@ function OnbCell({id, w, h, style}){
   return <div style={{width:w,height:h,boxSizing:'border-box',background:none||!id?'transparent':hexOf(id),
     border:none?`1.5px dashed ${T.disabled}`:!id?`1px dotted ${T.disabled}`:id==='WH'?`1px solid ${T.line}`:'none',...style}}></div>;
 }
-const ONB_SW = 54;
+const ONB_SW = 46;
 function OnbPalette({sel, onPick, hint, label, off}){
   const [hv,setHv] = React.useState(null);
   const sw = (id,k) => <div onMouseEnter={()=>setHv(k)} onMouseLeave={()=>setHv(null)} onClick={()=>!off&&onPick(id)} style={{cursor:off?'default':'pointer'}}>
     <Swatch id={id} size={ONB_SW} selected={sel===id} hover={!off&&hv===k}/></div>;
-  return <div style={{position:'absolute',left:930,top:190,width:6*ONB_SW+5*8,animation:'onbFade .4s ease-out'}}>
+  return <div style={{position:'absolute',left:930,top:190,width:PAL_COLS*ONB_SW+(PAL_COLS-1)*8,animation:'onbFade .4s ease-out'}}>
         <PaletteGrid render={sw} sw={ONB_SW} gap={8} rowGap={12}/>
     <div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:12}}>BCP-37 (Palmer et al. 2025)</div>
     <div style={{font:`500 20px ${T.sans}`,color:T.ink,textAlign:'center',marginTop:32}}>어떤 색이 떠오르나요?</div>

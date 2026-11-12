@@ -19,7 +19,7 @@ function Onboarding({a, up, go}){
           <div style={{flex:1,font:`400 24px ${T.serif}`,color:T.ink,letterSpacing:'.02em',whiteSpace:'nowrap'}}>창밖으로 비가 그치고</div><Sq c={pick||undefined} w={36} style={{animation:pick?'pkFill .14s both':'none'}}/></div>
         <div style={{height:44,marginTop:24,font:`400 14px/1.7 ${T.sans}`,color:T.ink2}}>{pick && <div style={{animation:'pkIn .15s both'}}>다시 누르면 바꿀 수 있어요. 바꾼 색도 기록으로 남아요.</div>}</div>
       </div>
-      <div style={{position:'absolute',left:1040,top:180,width:paletteW(),display:'flex',flexDirection:'column',alignItems:'center'}}>
+      <div style={{position:'absolute',left:1440-48-paletteW(),top:180,width:paletteW(),display:'flex',flexDirection:'column',alignItems:'center'}}>
         <Palette sel={pick} onPick={setPick} onHover={setHv}/>
         <div style={{font:`700 20px ${T.sans}`,color:T.ink,marginTop:40}}>어떤 색이 떠오르나요?</div>
       </div>

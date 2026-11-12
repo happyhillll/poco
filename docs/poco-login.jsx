@@ -66,7 +66,7 @@ function PhLogin({a, up, go}){
   };
   const to = m => { setErr(null); go('login',{mode:m,next:a.next,nextEx:a.nextEx,onbBar:a.onbBar}); }; // 뒤로가기로 이전 단계에 돌아올 수 있게 화면 이동으로 기록
   const title = signup ? <React.Fragment>새로운 감각의 자극!<br/>POCO에 오신 것을 환영해요.</React.Fragment> : '로그인';
-  const sub = bar ? `${signup?'가입하면':'로그인하면'} 방금 만든 바코드가 나의 색 서재에 담겨요.` : a.next && a.next!=='home' && !signup ? '로그인하면 보려던 화면으로 바로 이어져요.' : signup ? '아이디와 비밀번호만 정하면 돼요. 이름이나 이메일은 받지 않아요.' : null;
+  const sub = bar ? `${signup?'가입하면':'로그인하면'} 방금 만든 바코드가 나의 색 서재에 담겨요.` : a.next && a.next!=='home' && !signup ? '로그인하면 보려던 화면으로 바로 이어져요.' : null;
   const idNote = !signup ? undefined : avail&&avail.id===id ? <span style={{color:avail.ok?T.ink2:T.ink,fontWeight:avail.ok?400:500}}>{avail.msg}</span> : '다른 독자에게 보이는 이름이에요. 한글·영문·숫자 2~16자';
   const swap = <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:8,marginTop:20,font:`400 14px ${T.sans}`,color:T.caption}}>
     {signup?'이미 계정이 있으신가요?':'아직 회원이 아니신가요?'}

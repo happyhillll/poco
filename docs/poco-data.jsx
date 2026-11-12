@@ -8,9 +8,11 @@ const PC = {
   MR:['탁한 빨강','#D2798B'],MO:['탁한 주황','#D19974'],MY:['탁한 노랑','#D9C36D'],MH:['탁한 연두','#C8C64F'],MG:['탁한 초록','#99D978'],MC:['탁한 청록','#A0DDE0'],MB:['탁한 파랑','#88A3D0'],MP:['탁한 보라','#AF74B4'],
   DR:['진한 빨강','#A21D3C'],DO:['진한 주황','#9C5720'],DY:['진한 노랑','#A08420'],DH:['진한 연두','#869832'],DG:['진한 초록','#289844'],DC:['진한 청록','#2E9C9D'],DB:['진한 파랑','#417EB4'],DP:['진한 보라','#8020A5'],
 };
-// 배치는 이전과 같음: 무채색 줄(색 없음·검정·흰색) + 6×6 격자. 이전 좌표 자리에 대응하는 BCP-37 색을 넣음(A2는 이전처럼 두 자리)
-const PC_TOP = ['T1','BK','WH'];
-const PC_GRID = ['SR','SO','SY','LR','LO','LY', 'SP','A2','SH','LP','A3','LH', 'SB','SC','SG','LB','LC','LG', 'DR','DO','DY','MR','MO','MY', 'DP','A1','DH','MP','A2','MH', 'DB','DC','DG','MB','MC','MG'];
+// 배치(Schloss 2018 Fig. 3 방식): 맨 위 '색 없음' 한 칸 / 8열(빨강·주황·노랑·연두·초록·청록·파랑·보라) × 4줄(선명·연한·탁한·진한) / 무채색 5칸(검정→흰색)
+const PC_TOP = ['T1'];
+const PC_HUES = ['R','O','Y','H','G','C','B','P'];
+const PC_GRID = [...['S','L','M','D'].flatMap(l=>PC_HUES.map(h=>l+h)), 'BK','A1','A2','A3','WH'];
+const PC_COLS = 8;
 const PC_ORDER = [...new Set([...PC_TOP,...PC_GRID]),'SKIP'];
 const pcName = c => c==='SKIP' ? '건너뜀' : c && PC[c] ? PC[c][0] : '';
 const pcLabel = c => c==='SKIP' ? '건너뜀' : c && PC[c] ? `${c} · ${PC[c][0]}` : '';
@@ -76,4 +78,4 @@ const PILOT_R = ['남형석','김한결','김려원','조은','김민지'];
 MY.cpd.tags=WORKS.cpd.pilotMe.slice(); MY.cpd.first=WORKS.cpd.pilotMe.slice(); MY.jil.tags=WORKS.jil.pilotMe.slice();
 (()=>{ const m={'모과':'남형석','종이배':'김한결','새벽세시':'김려원','여름비':'조은','느린산책':'김민지'}; ['cpd','jil'].forEach(k=>Object.values(REACTS0[k]).forEach(L=>L.forEach(r=>{ if(m[r.n]) r.n=m[r.n]; }))); })();
 const namesOf = w => w.names || NICK;
-Object.assign(window,{withMyWhy,PILOT_R,namesOf,PC,PC_TOP,PC_GRID,PC_ORDER,pcName,pcLabel,NICK,ME,ME_INI,TODAY,WORKS,WORK_KEYS,MY,REACTS0,REACT_MAX,PL});
+Object.assign(window,{withMyWhy,PILOT_R,namesOf,PC,PC_TOP,PC_GRID,PC_COLS,PC_ORDER,pcName,pcLabel,NICK,ME,ME_INI,TODAY,WORKS,WORK_KEYS,MY,REACTS0,REACT_MAX,PL});

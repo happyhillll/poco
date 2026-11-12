@@ -345,9 +345,9 @@ function PhHomeM({a, go=()=>{}}){
       <div style={{marginTop:14}}><PhShelf a={a} ks={lib} go={go} w={44} h={210}/></div>
       <SecHead t="색으로 찾기" link="전체 팔레트" style={{marginTop:36}}/>
       <div style={{font:`400 13px ${T.sans}`,color:T.ink2,marginTop:8}}>색을 고르면 그 색으로 고른 행이 나와요.</div>
-      <div style={{marginTop:14}}><Palette sw={44} gap={8} cg={8}/></div>
+      <div style={{marginTop:14}}><Palette sw={38} gap={4} cg={8}/></div>
     </div>
-    <div style={{position:'absolute',left:0,right:0,bottom:0,height:64,borderTop:`1px solid ${T.line}`,background:'#F4F1E8',display:'grid',gridTemplateColumns:'repeat(4,1fr)'}}>
+    <div style={{position:'absolute',left:0,right:0,bottom:0,height:64,borderTop:`1px solid ${T.line}`,background:'#F4F1E8',display:'grid',gridTemplateColumns:`repeat(${NAV_ITEMS.length},1fr)`}}>
       {NAV_ITEMS.map(([k,l])=><div key={k} style={{display:'flex',alignItems:'center',justifyContent:'center',font:`${k==='home'?700:400} 13px ${T.sans}`,color:k==='home'?T.ink:T.ink2}}>{l}</div>)}</div>
   </div>;
 }

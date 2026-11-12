@@ -36,18 +36,18 @@ function Sq({c, w=30, h, r=3, style, title, onClick, cls}){
     {c==='SKIP' && w>=20 ? <span style={{font:`400 ${Math.min(14,w/2)}px ${T.sans}`,color:T.caption}}>–</span> : null}</div>;
 }
 
-// 팔레트: 무채색 줄 + 6×6 격자(묶음 구분 없음, 간격 6px). 호버 = 확대만, 이름 표시 없음
+// 팔레트: 맨 위 '색 없음' + 8열 격자(유채색 4줄 + 무채색 1줄). 호버 = 확대만, 이름 표시 없음
 function Palette({sel, onPick, sw=44, gap=6, cg=14, rowGap, onHover}){
   const rg = rowGap==null ? gap : rowGap;
   const cell = (c,k) => <div key={k} className="pk-hit pk-chip" onClick={()=>onPick&&onPick(c)} onMouseEnter={()=>onHover&&onHover(c)} onMouseLeave={()=>onHover&&onHover(null)}
     style={{outline:sel===c?`2px solid ${T.ink}`:'none',outlineOffset:2,borderRadius:4}}><Sq c={c} w={sw} r={4} title=""/></div>;
   return <div style={{display:'flex',flexDirection:'column'}}>
-    <div style={{display:'flex',gap}}><div style={{width:sw}}></div>{PC_TOP.map((c,k)=>cell(c,'t'+k))}</div>
+    <div style={{display:'flex',gap}}>{PC_TOP.map((c,k)=>cell(c,'t'+k))}</div>
     <div style={{height:cg+rg}}></div>
-    <div style={{display:'grid',gridTemplateColumns:`repeat(6,${sw}px)`,columnGap:gap,rowGap:rg}}>{PC_GRID.map((c,k)=>cell(c,'g'+k))}</div>
+    <div style={{display:'grid',gridTemplateColumns:`repeat(${PC_COLS},${sw}px)`,columnGap:gap,rowGap:rg}}>{PC_GRID.map((c,k)=>cell(c,'g'+k))}</div>
   </div>;
 }
-const paletteW = (sw=44,gap=6) => 6*sw+5*gap;
+const paletteW = (sw=44,gap=6) => PC_COLS*sw+(PC_COLS-1)*gap;
 
 // 세로 바코드 (행 순서 = 위→아래, 연 사이 틈) [유지: Barcode 구조]
 function VBar({colors, st, w=40, h=18, sg=5, hl=null, changed=[], dim, anim}){

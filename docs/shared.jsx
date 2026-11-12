@@ -21,20 +21,14 @@ const ACHRO = [{id:'NONE',hex:null},{id:'BK',hex:'#1E1E1E'},{id:'WH',hex:'#FFFFF
 const CHROMA = LEVELS.map(([l])=>HUES.map(([h],i)=>({id:l+h,hex:HEX[l][i]})));
 const BCP = {}; ACHRO.forEach(c=>BCP[c.id]=c); CHROMA.flat().forEach(c=>BCP[c.id]=c);
 const BCP_IDS = Object.keys(BCP).filter(k=>k!=='NONE'); // 37
-// 팔레트 배치(연구자 제공 이미지 기준): 상단 색 없음·검정·흰색, 6×6 격자
-// 좌 3열 = 선명(위 3줄)·어두운(아래 3줄), 우 3열 = 밝은(위)·탁한(아래). 회색은 격자 안 2·5열. AM은 두 칸에 반복.
-const PAL_TOP = ['NONE','BK','WH'];
-const PAL_GRID = [
-  'SR','SO','SY','LR','LO','LY',
-  'SP','AM','SH','LP','AL','LH',
-  'SB','SC','SG','LB','LC','LG',
-  'DR','DO','DY','MR','MO','MY',
-  'DP','AD','DH','MP','AM','MH',
-  'DB','DC','DG','MB','MC','MG'];
-const PAL_W = 6*44+5*6;
+// 팔레트 배치(Schloss 2018 Fig. 3 방식, 앱 Palette와 같음): 맨 위 색 없음 한 칸 / 8열 × 선명·연한·탁한·진한 4줄 / 무채색 5칸(검정→흰색)
+const PAL_TOP = ['NONE'];
+const PAL_GRID = [...LEVELS.flatMap(([l])=>HUES.map(([h])=>l+h)), 'BK','AD','AM','AL','WH'];
+const PAL_COLS = 8;
+const PAL_W = PAL_COLS*44+(PAL_COLS-1)*6;
 function PaletteGrid({render,sw=T.swatch,gap=T.swGap,rowGap=T.swRowGap}){
-  return <div style={{display:'grid',gridTemplateColumns:`repeat(6,${sw}px)`,columnGap:gap,rowGap}}>
-    {PAL_TOP.map((id,k)=><div key={'t'+k} style={{gridColumn:k+2}}>{render(id,'t'+k)}</div>)}
+  return <div style={{display:'grid',gridTemplateColumns:`repeat(${PAL_COLS},${sw}px)`,columnGap:gap,rowGap}}>
+    {PAL_TOP.map((id,k)=><div key={'t'+k} style={{gridColumn:k+1}}>{render(id,'t'+k)}</div>)}
     <div style={{gridColumn:'1 / -1',height:16-rowGap}}></div>
     {PAL_GRID.map((id,k)=><div key={'g'+k}>{render(id,'g'+k)}</div>)}
   </div>;
@@ -83,9 +77,9 @@ function PalettePopover({selected, hover, style}){
   </div>;
 }
 // 고정 팔레트(온보딩과 같은 배치): 화면 오른쪽 고정, 카드 없음, 54px 스와치, 출처 → 질문 순
-const FP_SW = 54;
+const FP_SW = 46;
 function FixedPalette({selected, hover, style}){
-  return <div style={{position:'absolute',left:930,top:190,width:6*FP_SW+5*8,...style}}>
+  return <div style={{position:'absolute',left:930,top:190,width:PAL_COLS*FP_SW+(PAL_COLS-1)*8,...style}}>
     <PaletteGrid render={id=><Swatch id={id} size={FP_SW} selected={selected===id} hover={hover===id}/>} sw={FP_SW} gap={8} rowGap={12}/>
     <div style={{font:`400 12px ${T.sans}`,color:T.caption,marginTop:12}}>BCP-37 (Palmer et al. 2025)</div>
     <div style={{font:`500 20px ${T.sans}`,color:T.ink,textAlign:'center',marginTop:32}}>어떤 색이 떠오르나요?</div>
@@ -221,5 +215,5 @@ function Annot({n}){
   </div>;
 }
 
-Object.assign(window,{T,G,HUES,LEVELS,HEX,ACHRO,CHROMA,BCP,BCP_IDS,hexOf,PAL_TOP,PAL_GRID,PAL_W,PaletteGrid,seeded,hashStr,mulberry32,POEM,N,STANZA_OF,lineTop,PH,POEM_LINES,lineText,READERS,readerColors,MY_V1,MY_V2,CHANGED,
+Object.assign(window,{T,G,HUES,LEVELS,HEX,ACHRO,CHROMA,BCP,BCP_IDS,hexOf,PAL_TOP,PAL_GRID,PAL_COLS,PAL_W,PaletteGrid,seeded,hashStr,mulberry32,POEM,N,STANZA_OF,lineTop,PH,POEM_LINES,lineText,READERS,readerColors,MY_V1,MY_V2,CHANGED,
   Heart,Pencil,Swatch,PalettePopover,FixedPalette,FP_SW,Strip,Btn,Kbd,LikeButton,ProgressDots,Barcode,BarcodeCol,PoemBody,LineMemoInput,Logo,LogoMark,TopBar,Progress,BottomRight,Screen,Annot});
