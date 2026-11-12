@@ -54,7 +54,7 @@ function VBar({colors, st, w=40, h=18, sg=5, hl=null, changed=[], dim, anim}){
   // 칸 사이 테두리 없음. 색 없음·건너뜀·아직 = 빈칸(투명)
   return <div style={{display:'flex',flexDirection:'column',width:w,animation:anim?`pkReveal ${anim}ms steps(${colors.length}) both`:'none'}}>
     {colors.map((c,i)=>{ const on = hl===i || changed.includes(i); const hex = c && PC[c] ? PC[c][1] : null;
-      return <div key={i} title={`${i+1}행`} style={{width:w,height:h,flex:'none',background:hex||'transparent',marginTop:i>0&&st[i]!==st[i-1]?sg:0,opacity:dim&&hl!=null&&hl!==i?.3:1,
+      return <div key={i} title={`${i+1}행`} style={{width:w,height:h,flex:'none',background:hex||'transparent',boxShadow:c==='WH'?'inset 0 0 0 1px rgba(0,0,0,.12)':'none',marginTop:i>0&&st[i]!==st[i-1]?sg:0,opacity:dim&&hl!=null&&hl!==i?.3:1,
         outline:on?`2px solid ${T.ink}`:'none',outlineOffset:1,position:'relative',zIndex:on?1:0,transition:'opacity .12s'}}></div>; })}
   </div>;
 }

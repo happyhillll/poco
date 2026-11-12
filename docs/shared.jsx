@@ -8,16 +8,16 @@ const T = {
 // Geometry (frame px, 1440×900). Body text x is fixed on screens 7·10·13·14·15.
 const G = { bodyLeft:140, textX:200, textR:840, popX:856, clipTop:72, pad:88 };
 
-// ───────── BCP-37 (근사값 — 연구자 제공 sRGB로 교체) ─────────
+// ───────── BCP-37 (실험 앱 bcp37.css와 같은 값) ─────────
 const HUES = [['R','빨강'],['O','주황'],['Y','노랑'],['H','연두'],['G','초록'],['C','청록'],['B','파랑'],['P','보라']];
 const LEVELS = [['S','saturated'],['L','light'],['M','muted'],['D','dark']];
 const HEX = {
-  S:['#D8322C','#EC8526','#F1D22E','#98C43C','#35A04A','#1FA3A6','#3868C0','#8646A6'],
-  L:['#F1A69D','#F7C99A','#F8E79E','#CFE4A0','#A7D8AF','#9DD8D7','#AABFE7','#C9AFD9'],
-  M:['#B6716A','#C39A6D','#C6B572','#9EAD72','#7C9B7F','#739D9C','#7B8BAD','#947E9E'],
-  D:['#882221','#8D501D','#8A781C','#58701F','#225D31','#1B5C61','#203E77','#4D2664'],
+  S:['#E23947','#FF9525','#FFE521','#B5D830','#00BD73','#00C6B8','#04A0D7','#A144C3'],
+  L:['#F19791','#FABE91','#FCE688','#CEE288','#85D5A5','#89D9CD','#91C4E1','#C7A0E0'],
+  M:['#B9615F','#C2895F','#C6AF59','#97AB5D','#57A57A','#53A29A','#5D8FAC','#946BA9'],
+  D:['#812930','#7E4924','#836D21','#62772D','#106946','#156D68','#215B7A','#643476'],
 };
-const ACHRO = [{id:'NONE',hex:null},{id:'BK',hex:'#1E1E1E'},{id:'WH',hex:'#FFFFFF'},{id:'AD',hex:'#5A5A5A'},{id:'AM',hex:'#8C8C8C'},{id:'AL',hex:'#C4C4C4'}];
+const ACHRO = [{id:'NONE',hex:null},{id:'BK',hex:'#090909'},{id:'WH',hex:'#FFFFFF'},{id:'AD',hex:'#5C5C5C'},{id:'AM',hex:'#8F8F8F'},{id:'AL',hex:'#C4C4C4'}];
 const CHROMA = LEVELS.map(([l])=>HUES.map(([h],i)=>({id:l+h,hex:HEX[l][i]})));
 const BCP = {}; ACHRO.forEach(c=>BCP[c.id]=c); CHROMA.flat().forEach(c=>BCP[c.id]=c);
 const BCP_IDS = Object.keys(BCP).filter(k=>k!=='NONE'); // 37
