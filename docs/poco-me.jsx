@@ -167,7 +167,7 @@ function PhUser({a, up, go}){
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:'flex',alignItems:'center',gap:14}}><div style={{font:`700 32px ${T.sans}`,color:T.ink}}>{nm}</div>{followers.includes(nm) && <span style={{font:`500 12px ${T.sans}`,color:T.ink2,border:`1px solid ${T.line}`,borderRadius:3,padding:'2px 8px'}}>나를 팔로우</span>}</div>
           <div style={{display:'flex',alignItems:'flex-end',gap:28,marginTop:18}}>
-            {[[nFer,'팔로워'],[nIng,'팔로잉']].map(([v,l])=><div key={l} style={{display:'flex',alignItems:'baseline',gap:8,height:44}}><span style={{font:`700 24px ${T.sans}`,color:T.ink}}>{v}</span><span style={{font:`500 15px ${T.sans}`,color:T.ink}}>{l}</span></div>)}
+            {[[nFer+(on?1:0),'팔로워'],[nIng,'팔로잉']].map(([v,l])=><div key={l} style={{display:'flex',alignItems:'baseline',gap:8,height:44}}><span style={{font:`700 24px ${T.sans}`,color:T.ink}}>{v}</span><span style={{font:`500 15px ${T.sans}`,color:T.ink}}>{l}</span></div>)}
             <div style={{width:1,height:20,background:T.line,alignSelf:'center'}}></div>
             {[[ks.length,'다 읽은 시'],[together.length,'나와 함께 읽은 시']].map(([v,l])=><div key={l} style={{display:'flex',alignItems:'baseline',gap:6,height:44}}><span style={{font:`700 17px ${T.sans}`,color:T.ink2}}>{v}</span><span style={{font:`400 14px ${T.sans}`,color:T.caption}}>{l}</span></div>)}</div></div>
         <PBtn kind={on?'secondary':'primary'} h={44} onClick={toggle}>{on?'팔로잉':'팔로우'}</PBtn>

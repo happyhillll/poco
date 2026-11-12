@@ -70,7 +70,7 @@ function PhCmp({a, up, go}){
 // 프로필 사진: 사진이 있으면 사진, 없으면 이름 두 글자
 const PH_PICS = {};
 const PhPic = ({nm, s=36, me}) => PH_PICS[nm] ? <img src={PH_PICS[nm]} alt={nm} style={{width:s,height:s,borderRadius:'50%',objectFit:'cover',flex:'none'}}/>
-  : <div style={{width:s,height:s,borderRadius:'50%',flex:'none',background:me?T.ink:'#E3DED2',color:me?'#fff':T.ink2,display:'flex',alignItems:'center',justifyContent:'center',font:`500 ${Math.round(s*.34)}px ${T.sans}`}}>{nm.slice(-2)}</div>;
+  : <div style={{width:s,height:s,borderRadius:'50%',flex:'none',background:me?T.ink:'#E3DED2',color:me?'#fff':T.ink2,display:'flex',alignItems:'center',justifyContent:'center',font:`500 ${Math.round(s*.34)}px ${T.sans}`}}>{nm===ME?ME_INI:(nm||'').slice(-2)}</div>;
 // 태깅한 이유: 가장 먼 행에 내 이유를 남기면 → 상대의 이유가 열리고 → 그 아래 대댓글
 const WHY_SEED = ['이 행에서 소리가 먼저 들려서 그 색을 골랐어요.','단어보다 행 전체의 온도를 보고 골랐어요.','앞 행에서 이어지는 기분을 그대로 가져왔어요.','읽는 순간 떠오른 장면의 색이에요.','조금 반대로 읽어 보고 싶었어요.','이 말이 무겁게 느껴져서 어두운 쪽으로 갔어요.'];
 function PhWhy({a, up, k, i, r, nm, mine, other, line}){
@@ -164,7 +164,7 @@ function PhSimDrawer({a, at, onPick, onClose}){
 }
 
 // 바코드 모음 탭: 나와 가장 비슷한 / 가장 다른 독자 + 이 시를 읽은 독자 줄(아바타·이름·작은 바코드)
-const phAvatar = (nm, s=64, me) => <div style={{width:s,height:s,borderRadius:'50%',flex:'none',background:me?T.ink:'#E3DED2',color:me?'#fff':T.ink2,display:'flex',alignItems:'center',justifyContent:'center',font:`500 ${Math.round(s*.34)}px ${T.sans}`}}>{nm.slice(-2)}</div>;
+const phAvatar = (nm, s=64, me) => <div style={{width:s,height:s,borderRadius:'50%',flex:'none',background:me?T.ink:'#E3DED2',color:me?'#fff':T.ink2,display:'flex',alignItems:'center',justifyContent:'center',font:`500 ${Math.round(s*.34)}px ${T.sans}`}}>{nm===ME?ME_INI:(nm||'').slice(-2)}</div>;
 // 시 전체에서 가장 많이 쓰인 색 1개. mineOnly=true면 내 색만 센다. 동률이면 팔레트 순서(순위 느낌 없음)
 function topColorOf(w, mine, mineOnly){
   const cnt={}; const add=c=>{ if(c&&PC[c]&&PC[c][1]) cnt[c]=(cnt[c]||0)+1; };
@@ -255,7 +255,7 @@ function PhFind({a, up, go}){
           <div style={{font:`400 13px/1.7 ${T.sans}`,color:T.caption,marginTop:10}}>그 색으로 읽힌 행, 그 색이 많이 나온 시, 같은 행에서 함께 고른 색까지 한 번에 볼 수 있어요.</div></div>}
         {c && res.length===0 && <div style={{padding:'24px 0'}}>
           <div style={{font:`400 15px ${T.sans}`,color:T.ink}}>이 색으로 고른 행이 아직 없어요.</div>
-          <div style={{font:`400 14px ${T.sans}`,color:T.ink2,marginTop:8}}>{mode==='mine'?'‘다른 독자’로 바꾸거나, ':''}다른 색으로 찾아보세요.</div></div>}
+          <div style={{font:`400 14px ${T.sans}`,color:T.ink2,marginTop:8}}>{mode==='mine'?(Object.keys(a.tags||{}).length?'‘전체’로 바꾸거나, ':'아직 다 읽은 시가 없어요. 시를 끝까지 읽고 색을 고르면 여기에 나와요. ‘전체’로 바꾸거나, '):''}다른 색으로 찾아보세요.</div></div>}
         {groups.map(g=><div key={g.k+g.rows[0].i} >
           {grp && <div className="pk-hit" onClick={()=>go('poem',{pk:g.k})} style={{display:'flex',alignItems:'baseline',gap:10,height:40,padding:'0 12px',marginTop:16,background:T.band,borderRadius:4}}>
             <span style={{font:`700 15px ${T.serif}`,color:T.ink,whiteSpace:'nowrap'}}>{WORKS[g.k].title}</span>

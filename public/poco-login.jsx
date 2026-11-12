@@ -25,7 +25,7 @@ function PhField({label, hint, type='text', value, onChange, placeholder, bad, o
 }
 // 아이디 + 비밀번호만으로 가입·로그인(이메일·소셜 계정 없음 = 익명). 아이디는 서버에서 중복 검사
 // mode: login · signup (예전 signup-more·signup-email·login-email 주소도 같은 화면으로)
-const POCO_RESERVED = () => [...new Set([...NICK,...PILOT_R,...Object.values(WORKS).flatMap(w=>namesOf(w)),'나'])]; // 시연 독자 이름과 겹치면 화면에서 구분이 안 되므로 막음
+const POCO_RESERVED = () => [...new Set([...NICK,...PILOT_R,...Object.values(WORKS).flatMap(w=>namesOf(w)),...(typeof ONB_NAMES!=='undefined'?ONB_NAMES.map(x=>x[0]):[]),'나'])].map(s=>s.toLowerCase()); // 시연 독자 이름과 겹치면 화면에서 구분이 안 되므로 막음
 function PhLogin({a, up, go}){
   const mode = a.mode||'login', signup = mode.startsWith('signup');
   const bar = a.onbBar&&a.onbBar.length ? a.onbBar : null;
@@ -36,7 +36,7 @@ function PhLogin({a, up, go}){
   const [avail,setAvail] = React.useState(null); // 가입 아이디 확인: null | {id, ok, msg}
   const set = k => v => { setF(s=>({...s,[k]:v})); setErr(null); };
   const id = f.id.trim();
-  const localIdErr = v => !/^[A-Za-z0-9_가-힣]{2,16}$/.test(v) ? '아이디는 한글·영문·숫자·밑줄(_) 2~16자로 정해 주세요.' : POCO_RESERVED().includes(v) ? '이미 쓰고 있는 아이디예요. 다른 아이디를 골라 주세요.' : null;
+  const localIdErr = v => !/^[A-Za-z0-9_가-힣]{2,16}$/.test(v) ? '아이디는 한글·영문·숫자·밑줄(_) 2~16자로 정해 주세요.' : POCO_RESERVED().includes(v.toLowerCase()) ? '이미 쓰고 있는 아이디예요. 다른 아이디를 골라 주세요.' : null;
   // 가입: 입력을 멈추면 0.4초 뒤 중복 확인
   React.useEffect(()=>{ if(!signup||!API) return; setAvail(null); if(!id) return;
     const le = localIdErr(id); if(le){ setAvail({id,ok:false,msg:le}); return; }
@@ -47,7 +47,7 @@ function PhLogin({a, up, go}){
     const n=WORKS.sar.lines.length, off=n-bar.length, old=((s.prog||{}).sar)||[]; const p=Array.from({length:n},(_,i)=>old[i]==null?undefined:old[i]);
     bar.forEach((c,j)=>{ if(p[off+j]===undefined) p[off+j]=c; }); s.prog={...(s.prog||{}),sar:p}; return s; };
   const demoDone = () => { localStorage.setItem('poco.authed','1'); localStorage.setItem('poco.onboarded','1');
-    up(s=>({authed:true,...(withBar(s)===s?{}:{prog:withBar(s).prog})})); go(a.next||'home',{authed:true,next:null,onbBar:null}); };
+    up(s=>({authed:true,...(withBar(s)===s?{}:{prog:withBar(s).prog})})); go(a.next||'home',{...(a.nextEx||{}),authed:true,next:null,nextEx:null,onbBar:null}); };
   const submit = async () => {
     if(busy) return;
     if(!id||!f.pw||(signup&&!f.pw2)) return setErr(signup?'아이디와 비밀번호를 모두 입력해 주세요.':'아이디와 비밀번호를 입력해 주세요.');
@@ -61,10 +61,10 @@ function PhLogin({a, up, go}){
     // 이 계정의 기록으로 새로 시작(이름·서재가 계정 것으로 바뀌도록 화면을 다시 불러옴)
     localStorage.setItem('poco.onboarded','1');
     await API.adopt(withBar(r.state));
-    sessionStorage.setItem('poco.next', a.next&&a.next!=='login'?a.next:'home');
+    sessionStorage.setItem('poco.next', JSON.stringify(a.next&&a.next!=='login'?{scr:a.next,ex:a.nextEx||{}}:{scr:'home'}));
     location.reload();
   };
-  const to = m => { setErr(null); go('login',{mode:m,next:a.next,onbBar:a.onbBar}); }; // 뒤로가기로 이전 단계에 돌아올 수 있게 화면 이동으로 기록
+  const to = m => { setErr(null); go('login',{mode:m,next:a.next,nextEx:a.nextEx,onbBar:a.onbBar}); }; // 뒤로가기로 이전 단계에 돌아올 수 있게 화면 이동으로 기록
   const title = signup ? <React.Fragment>새로운 감각의 자극!<br/>POCO에 오신 것을 환영해요.</React.Fragment> : '로그인';
   const sub = bar ? `${signup?'가입하면':'로그인하면'} 방금 만든 바코드가 나의 색 서재에 담겨요.` : a.next && a.next!=='home' && !signup ? '로그인하면 보려던 화면으로 바로 이어져요.' : signup ? '아이디와 비밀번호만 정하면 돼요. 이름이나 이메일은 받지 않아요.' : null;
   const idNote = !signup ? undefined : avail&&avail.id===id ? <span style={{color:avail.ok?T.ink2:T.ink,fontWeight:avail.ok?400:500}}>{avail.msg}</span> : '다른 독자에게 보이는 이름이에요. 한글·영문·숫자 2~16자';

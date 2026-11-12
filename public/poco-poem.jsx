@@ -10,7 +10,7 @@ const POEM_INFO = {
 const PhSec = ({t, n, right, children, style}) => <div style={{padding:'36px 0',borderTop:`1px solid ${T.line}`,...style}}>
   <div style={{display:'flex',alignItems:'baseline',gap:10,marginBottom:20}}><span style={{font:`700 20px ${T.sans}`,color:T.ink,whiteSpace:'nowrap'}}>{t}</span>{n!=null && <span style={{font:`400 17px ${T.sans}`,color:T.caption}}>{n}</span>}<div style={{flex:1}}></div>{right}</div>
   {children}</div>;
-const phAv = (nm, s=56, me) => <div style={{width:s,height:s,borderRadius:'50%',flex:'none',background:me?T.ink:'#E3DED2',color:me?'#fff':T.ink2,display:'flex',alignItems:'center',justifyContent:'center',font:`500 ${Math.round(s*.32)}px ${T.sans}`}}>{nm.slice(-2)}</div>;
+const phAv = (nm, s=56, me) => <div style={{width:s,height:s,borderRadius:'50%',flex:'none',background:me?T.ink:'#E3DED2',color:me?'#fff':T.ink2,display:'flex',alignItems:'center',justifyContent:'center',font:`500 ${Math.round(s*.32)}px ${T.sans}`}}>{nm===ME?ME_INI:nm.slice(-2)}</div>;
 
 function PhPoem({a, up, go}){
   // 단순화 원칙: 힉(진입 행동 1개) · 선택적 주의(처음엔 내 색만, 독자 색은 펼쳐서) · 제이콥(표지·제목·CTA·본문·관련 작품의 익숙한 순서) · 밀러(섹션 4개 이내)
@@ -45,7 +45,7 @@ function PhPoem({a, up, go}){
         </div>
       </div>
       {/* 2. 본문 + 내 바코드 (다 읽은 뒤) */}
-      {done ? <div ref={bdR}><PhBody a={a} up={up} k={k}/></div>
+      {done ? <div ref={bdR}><PhBody a={a} up={up} go={go} k={k}/></div>
         : <div style={{marginTop:40,padding:'28px 32px',background:T.band,borderRadius:8,display:'flex',alignItems:'center',gap:20}}>
             <svg width="22" height="24" viewBox="0 0 14 16" fill="none" stroke={T.ink} strokeWidth="1.4"><rect x="1.5" y="7" width="11" height="8" rx="1.5"></rect><path d="M4 7V4.5a3 3 0 016 0V7"></path></svg>
             <div style={{font:`400 15px/1.6 ${T.sans}`,color:T.ink2}}>본문을 한 행씩 읽으며 색을 고르면, 내 컬러 바코드와 독자 {NM.length}명의 색이 여기에 열려요.</div></div>}
@@ -70,7 +70,7 @@ function PhPoem({a, up, go}){
 }
 // 본문: 기본은 [행 | 내 색]만 (선택적 주의). '독자 n명의 색' 토글을 켜면 독자 열이 열리고, 가장 비슷/다른 독자 칩으로 한 명과 비교.
 // 오른쪽: 내 컬러 바코드 · 대표색 (이 화면의 핵심 산출물, 폰 레스토프)
-function PhBody({a, up, k}){
+function PhBody({a, up, go, k}){
   const w=WORKS[k], mine=a.tags[k], NM0=namesOf(w), n=w.lines.length;
   const following=a.following||[]; const FR=NM0.map((nm,r)=>({nm,r})).filter(o=>following.includes(o.nm)); // 친구 = 내가 팔로우하는 독자
   const view=a.pv||'me'; const showR=view==='friends'&&FR.length>0, showAll=view==='all';
@@ -111,13 +111,14 @@ function PhBody({a, up, k}){
     {segs.map((s,j)=><div key={j} onMouseEnter={()=>setHv({i,...s})} title={`${s.who} · ${pcLabel(s.c)||'비움'}`} style={{width:`${s.p*100}%`,background:ok(s.c)?PC[s.c][1]:'transparent',border:ok(s.c)?'none':`1px dashed ${T.disabled}`,boxSizing:'border-box',outline:hv&&hv.i===i&&hv.who===s.who?`2px solid ${T.ink}`:'none',outlineOffset:-2,opacity:hv&&hv.i===i&&hv.who!==s.who?.45:1,transition:'opacity .1s'}}></div>)}</div>;
   const hint=i=>hv&&hv.i===i && <span style={{position:'relative',width:0,marginLeft:-16,flex:'none',alignSelf:'stretch'}}><span style={{position:'absolute',left:-244,bottom:'calc(100% - 4px)',font:`500 12px ${T.sans}`,color:'#fff',background:T.ink,borderRadius:4,padding:'3px 8px',whiteSpace:'nowrap',pointerEvents:'none',zIndex:3}}>{hv.who} · {pcName(hv.c)||'비움'}</span></span>; /* 막대 위에 겹쳐 띄움: 행 폭이 바뀌지 않게 */
   return <PhSec t="본문과 내 색" style={{marginTop:36}} right={switcher}>
-    {view==='friends' && FR.length===0 && <div style={{margin:'0 0 16px',padding:'14px 18px',background:T.band,borderRadius:6,font:`400 14px ${T.sans}`,color:T.ink2}}>이 시를 읽은 독자 중 팔로우하는 친구가 아직 없어요. 전체 독자의 색을 보거나, 프로필에서 독자를 팔로우해 보세요.</div>}
+    {view==='friends' && FR.length===0 && <div style={{margin:'0 0 16px',padding:'14px 18px',background:T.band,borderRadius:6,font:`400 14px ${T.sans}`,color:T.ink2}}>이 시를 읽은 독자 중 팔로우하는 친구가 아직 없어요. 전체 독자의 색을 보거나, 아래 독자의 프로필에서 팔로우해 보세요.
+      {go && <div style={{display:'flex',flexWrap:'wrap',gap:8,marginTop:12}}>{namesOf(WORKS[k]).filter(n=>n!==ME).map(n=><span key={n} className="pk-hit" onClick={()=>go('user',{who:n})} style={{display:'inline-flex',alignItems:'center',gap:8,height:36,padding:'0 12px 0 4px',background:T.surface,border:`1px solid ${T.line}`,borderRadius:18,font:`500 13px ${T.sans}`,color:T.ink}}><PhPic nm={n} s={28}/>{n}</span>)}</div>}</div>}
     <div style={{display:'flex',gap:24,alignItems:'flex-start',marginRight:-180}}>
       <div ref={leftR} style={{flex:'none',position:'relative'}}>
        <div style={{width:'max-content',position:'relative'}}>
         {one && <div style={{display:'flex',alignItems:'flex-end',gap:16,padding:'0 12px',height:40}}>
           <span style={{width:20}}></span><span style={{width:TW,flex:'none'}}></span>
-          <div style={{width:SQ,display:'flex',justifyContent:'center'}}><span style={{font:`700 11px ${T.sans}`,color:T.ink,whiteSpace:'nowrap'}}>{one.nm.slice(-2)}</span></div></div>}
+          <div style={{width:SQ,display:'flex',justifyContent:'center'}}><span style={{font:`700 11px ${T.sans}`,color:T.ink,whiteSpace:'nowrap'}}>{one.nm===ME?ME_INI:one.nm.slice(-2)}</span></div></div>}
         {(showR||showAll) && <div style={{display:'flex',alignItems:'flex-end',gap:16,padding:'0 12px',height:40}}>
           <span style={{width:20}}></span><span style={{width:TW,flex:'none'}}></span>
           <div style={{width:SQ,display:'flex',justifyContent:'center'}}><span style={{font:`700 11px ${T.sans}`,color:T.ink}}>나</span></div>

@@ -193,6 +193,7 @@ function PhRequest({a, up}){
 function PhShelf({a, ks, go, w=52, h=250, gap=6}){
   return <div style={{display:'inline-flex',flexDirection:'column'}}>
     <style>{`.ph-spine{transition:transform .12s}.ph-spine:hover{transform:translateY(-8px)}`}</style>
+    {!ks.length && <div style={{font:`400 14px ${T.sans}`,color:T.caption,padding:'0 14px 12px'}}>아직 담긴 시가 없어요. 시를 끝까지 읽고 색을 고르면 이 서재에 꽂혀요.</div>}
     <div style={{display:'flex',alignItems:'flex-end',gap,padding:'0 14px'}}>{ks.map(k=><PhSpine key={k} a={a} k={k} go={go} w={w} h={h}/>)}</div>
     <div style={{height:10,background:'linear-gradient(#CFC8B8,#B9B19F)',borderRadius:2,boxShadow:'0 3px 6px rgba(0,0,0,.12)'}}></div></div>;
 }
@@ -328,7 +329,7 @@ function PhHomeM({a, go=()=>{}}){
   const lib = libKeys(a).slice(0,3);
   return <div style={{position:'relative',width:390,height:1760,background:PAPER,overflow:'hidden',fontFamily:T.sans,color:T.ink}}><PocoStyle/><style>{phCss}</style>
     <div style={{height:56,display:'flex',alignItems:'center',padding:'0 20px',borderBottom:`1px solid ${T.line}`}}><Wordmark size={19}/><div style={{flex:1}}></div>
-      <div style={{width:28,height:28,borderRadius:'50%',background:T.band,display:'flex',alignItems:'center',justifyContent:'center',font:`500 12px ${T.sans}`,color:T.ink2}}>{ME==='김민지'?'민':[...ME][0]}</div></div>
+      <div style={{width:28,height:28,borderRadius:'50%',background:T.band,display:'flex',alignItems:'center',justifyContent:'center',font:`500 12px ${T.sans}`,color:T.ink2}}>{ME==='김민지'?'민':ME_INI}</div></div>
     <div style={{padding:'24px 20px 120px'}}>
       <SecHead t="이어 읽기"/>
       <div style={{marginTop:12,background:T.surface,border:`1px solid ${T.line}`,borderRadius:8,padding:20}}>

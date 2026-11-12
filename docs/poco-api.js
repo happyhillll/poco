@@ -7,7 +7,8 @@
   const SESSION_KEY = 'poco.session', STATE_KEY = 'poco.state.v1', MOCK_KEY = 'poco.mock.db';
   const configured = !!(CFG.url && CFG.key);
   const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-  const mock = !configured && isLocal;
+  // localhost에서 localStorage 'poco.mock'='1' 이면 설정이 있어도 연습용 저장소를 씀(검증용, 실제 서버에 계정을 만들지 않으려고)
+  const mock = isLocal && (!configured || localStorage.getItem('poco.mock')==='1');
   const NAME_RE = /^[A-Za-z0-9_가-힣]{2,16}$/;
   const ERR = {
     invalid_username: '아이디는 한글·영문·숫자·밑줄(_) 2~16자로 정해 주세요.',

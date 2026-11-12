@@ -61,6 +61,10 @@ begin
   return v_token;
 end $$;
 
+-- 시연 독자 이름(화면에서 구분이 안 되므로 가입 불가). 앱 POCO_RESERVED()와 같은 목록, 소문자
+create or replace function public.poco__reserved(p_key text) returns boolean
+language sql immutable as $$ select p_key = any(array['남형석','조은','김려원','김한결','이은수','김민지','이수동','joyce','신형철','김찬영']) $$;
+
 -- ───────── 공개 함수 (브라우저가 부르는 것) ─────────
 -- 아이디 규칙: 한글·영문·숫자·밑줄 2~16자. 대소문자만 다른 아이디는 같은 아이디로 본다.
 create or replace function public.poco_username_available(p_username text) returns jsonb
@@ -68,7 +72,7 @@ language plpgsql security definer set search_path = public, extensions as $$
 declare v_name text := btrim(coalesce(p_username,''));
 begin
   if v_name !~ '^[A-Za-z0-9_가-힣]{2,16}$' then return jsonb_build_object('ok',false,'error','invalid_username'); end if;
-  if exists(select 1 from poco_users where username_key = lower(v_name)) then return jsonb_build_object('ok',false,'error','taken'); end if;
+  if poco__reserved(lower(v_name)) or exists(select 1 from poco_users where username_key = lower(v_name)) then return jsonb_build_object('ok',false,'error','taken'); end if;
   return jsonb_build_object('ok',true);
 end $$;
 
@@ -78,6 +82,7 @@ declare v_name text := btrim(coalesce(p_username,'')); v_id uuid;
 begin
   if v_name !~ '^[A-Za-z0-9_가-힣]{2,16}$' then return jsonb_build_object('ok',false,'error','invalid_username'); end if;
   if p_password is null or char_length(p_password) < 6 or char_length(p_password) > 72 then return jsonb_build_object('ok',false,'error','weak_password'); end if;
+  if poco__reserved(lower(v_name)) then return jsonb_build_object('ok',false,'error','taken'); end if;
   insert into poco_users(username, username_key, pw_hash)
   values (v_name, lower(v_name), extensions.crypt(p_password, extensions.gen_salt('bf', 10)))
   on conflict (username_key) do nothing
@@ -146,7 +151,7 @@ begin
 end $$;
 
 -- 권한: 내부 도우미는 막고, 공개 함수만 anon(브라우저)에게 허용
-revoke all on function public.poco__hash(text), public.poco__uid(text), public.poco__new_session(uuid) from public, anon, authenticated;
+revoke all on function public.poco__hash(text), public.poco__uid(text), public.poco__new_session(uuid), public.poco__reserved(text) from public, anon, authenticated;
 revoke all on function public.poco_username_available(text), public.poco_signup(text,text), public.poco_login(text,text),
   public.poco_load(text), public.poco_save(text,jsonb), public.poco_logout(text), public.poco_delete_account(text) from public;
 grant execute on function public.poco_username_available(text), public.poco_signup(text,text), public.poco_login(text,text),

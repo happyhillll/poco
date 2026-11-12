@@ -258,9 +258,11 @@ function Convo({a, up, w, i, mine}){
 // ───────── 앱 ─────────
 // 저장: 화면 이동·말풍선 같은 일시 상태는 빼고 사용자 기록만 localStorage 'poco.state.v1'에 JSON으로
 const POCO_KEY='poco.state.v1';
-const POCO_TRANSIENT=['authed','scr','step','back','convo','toast','drawer','bub','cmpR','pv','justDone','readInit','mode','next','onbBar','loginFill','loginErr','fmode','pk','tab','cr','fc','fm','fs','fg','sl','poet'];
+const POCO_TRANSIENT=['authed','scr','step','back','convo','toast','drawer','bub','cmpR','pv','justDone','readInit','mode','next','onbBar','loginFill','loginErr','nextEx','who','pendingNext','fmode','pk','tab','cr','fc','fm','fs','fg','sl','poet'];
 function pocoSave(a){ try{ const o={}; Object.keys(a).forEach(k=>{ if(!POCO_TRANSIENT.includes(k)) o[k]=a[k]; }); localStorage.setItem(POCO_KEY,JSON.stringify(o)); if(window.PocoAPI&&a.authed) PocoAPI.save(o); }catch(e){} }
 // 앱(계정 로그인)의 시작 상태: 읽은 시 없는 빈 서재. 시연용 PH_INIT은 캔버스 프레임에서만 사용
+// sessionStorage 'poco.next': 로그인 직후 이어갈 화면. 예전 형식(화면 이름 문자열)도 읽음
+function pocoNext(){ const v=sessionStorage.getItem('poco.next'); sessionStorage.removeItem('poco.next'); if(!v) return null; try{ const o=JSON.parse(v); if(o&&o.scr) return {scr:o.scr,ex:o.ex||{}}; }catch(e){} return {scr:v,ex:{}}; }
 const PH_BLANK={tags:{},rep:{},first:{},hist:{},prog:{},when:{},fresh:null,fav:[],following:[],followers:[]};
 function pocoLoad(){ try{ const o=JSON.parse(localStorage.getItem(POCO_KEY)||'null'); if(!o||typeof o!=='object') return null; POCO_TRANSIENT.forEach(k=>delete o[k]); if(o.prog) Object.keys(o.prog).forEach(k=>{ o.prog[k]=Array.isArray(o.prog[k])?o.prog[k].map(x=>x===null?undefined:x):undefined; }); return o; }catch(e){ return null; } }
 // 화면 하나에서 오류가 나도 앱 전체가 하얗게 멈추지 않게: 안내와 '홈으로'만 보여 줌
@@ -281,15 +283,16 @@ function PocoApp({init}){
     // 프로토타입(init 없음)에서는 내 기록(태깅·진행·찜·팔로우·반응 등)을 브라우저에 저장해 새로고침 뒤에도 이어짐
     const INIT0 = init ? PH_INIT : PH_BLANK; const base={...INIT0,why:myWhy,reacts:REACTS0}; const saved0 = init ? null : pocoLoad(); const saved = saved0 && {};
     if(saved) Object.keys(saved0).forEach(k=>{ const v=saved0[k], b=base[k]; if(b===undefined || (v!==null && typeof v===typeof b && Array.isArray(v)===Array.isArray(b))) saved[k]=v; }); // 형식이 다른 값은 버리고 기본값 사용
-    const next0 = !init && authed0 ? sessionStorage.getItem('poco.next') : null; if(!init) sessionStorage.removeItem('poco.next'); // 로그인 직후 가려던 화면
-    return {authed:authed0,scr:next0||(localStorage.getItem('poco.onboarded')?'home':'onb'),step:0,pk:'cpd',...JSON.parse(JSON.stringify(INIT0)),why:myWhy,convo:null,readInit:null,reacts:JSON.parse(JSON.stringify(REACTS0)),...(saved||{}),...(init||{})}; });
+    const next0 = !init && authed0 ? pocoNext() : null; // 로그인 직후 가려던 화면 {scr, ex}
+    return {authed:authed0,scr:next0?'home':(localStorage.getItem('poco.onboarded')?'home':'onb'),pendingNext:next0,step:0,pk:'cpd',...JSON.parse(JSON.stringify(INIT0)),why:myWhy,convo:null,readInit:null,reacts:JSON.parse(JSON.stringify(REACTS0)),...(saved||{}),...(init||{})}; });
   React.useEffect(()=>{ if(!init) pocoSave(a); },[a]);
+  React.useEffect(()=>{ const n=a.pendingNext; if(n){ up({pendingNext:null,back:[]}); if(n.scr!=='home') go(n.scr,n.ex||{}); } },[]); // 로그인 직후: 가려던 화면(시 pk 등 포함)으로
   const up = p => setA(s=>({...s,...(typeof p==='function'?p(s):p)}));
   // 뒤로가기: 화면 이동마다 직전 위치를 쌓고, '__back'이면 하나 꺼냄(없으면 홈)
   // 시 한 편에 딸린 화면은 모두 시 화면(poem) 안의 상태로: 페이지 이동 없이 서랍·제자리 비교·모달
   const AL={bar:()=>({}),space:e=>e.tab==='dist'?{drawer:0}:{},cmp:e=>({cmpR:e.cr==null?0:e.cr}),work:()=>({}),re:()=>({drawer:0}),done:()=>({justDone:true})};
   const go = (scr0, ex0={}) => { let scr=scr0, extra=ex0;
-    if(!a.authed && !ex0.authed && !['login','onb','__back'].includes(scr0)) return go0('login',{mode:'login',next:scr0});
+    if(!a.authed && !ex0.authed && !['login','onb','__back'].includes(scr0)) return go0('login',{mode:'login',next:scr0,nextEx:ex0});
     if(AL[scr0]){ scr='poem'; extra={...ex0,...AL[scr0](ex0)}; }
     if(scr0==='sim'){ scr='find'; extra={...ex0,fmode:'sim'}; }
     if(scr==='poem') extra={drawer:null,bub:null,cmpR:null,pv:'me',justDone:false,...extra};
@@ -297,7 +300,7 @@ function PocoApp({init}){
     return go0(scr, extra); };
   const go0 = (scr, extra={}) => scr==='__back'
     ? up(s=>{ const B=(s.back||[]).slice(); const p=B.pop()||{scr:'home'}; return {...p,back:B,convo:null}; })
-    : up(s=>({back:[...(s.back||[]),{scr:s.scr,mode:s.mode,next:s.next,pk:s.pk,tab:s.tab,cr:s.cr,fc:s.fc,fm:s.fm,sl:s.sl,poet:s.poet,readInit:s.scr==='read'?contInit(s,s.pk):s.readInit}].slice(-30),scr,convo:null,...extra}));
+    : up(s=>({back:[...(s.back||[]),{scr:s.scr,mode:s.mode,next:s.next,pk:s.pk,tab:s.tab,cr:s.cr,fc:s.fc,fm:s.fm,sl:s.sl,poet:s.poet,who:s.who,readInit:s.scr==='read'?contInit(s,s.pk):s.readInit}].slice(-30),scr,convo:null,...extra}));
   const P = {a,up,go}; window.__pocoGo = go;
   const S = {onb:PocoOnb,home:PhHome,poem:PhPoem,me:PhMe,list:List,poets:PhPoets,read:Read,done:Done,work:Work,re:Reread,bar:PhBar,cmp:PhCmp,space:PhSpace,lib:PhLib,find:a.fmode==='sim'?PhSim:PhFind,sim:PhSim,text:PhText,user:PhUser,help:PhHelp,settings:PhSettings,login:PhLogin}[a.scr];
   const sk=a.scr+a.pk+(a.scr==='find'?a.fmode:'')+(a.scr==='login'?a.mode:'');
